@@ -1,0 +1,23 @@
+{
+  "schema_version": "0.1",
+  "claim_id": "claim-107",
+  "claim": {
+    "type": "estimate",
+    "statement": "An example quantity was estimated for the specified area.",
+    "value": 0.55,
+    "unit": "1",
+    "uncertainty": {
+      "kind": "interval",
+      "lower": 0.9,
+      "upper": 0.1,
+      "unit": "1"
+    }
+  },
+  "data_origin": "measured",
+  "data_processing": "modeled",
+  "spatial_scope": { "type": "named_area", "name": "Example Area" },
+  "temporal_scope": { "observed_at": "2026-01-15T01:30:00Z" },
+  "evidence": [],
+  "display": { "label": "Estimated example quantity" },
+  "processing": { "method": "Example estimator" }
+}

@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbseekr.jp/eo-claim-lint/claim-document-0.1.schema.json",
+  "title": "eo-claim-lint claim document",
+  "description": "A single machine-checkable claim derived from Earth observation or remote sensing data. This schema describes how a claim is stated, not whether it is true: it makes no statement about the scientific accuracy of any value, and it establishes no legal or evidentiary standing.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "claim_id",
+    "claim",
+    "data_origin",
+    "data_processing",
+    "spatial_scope",
+    "temporal_scope",
+    "evidence",
+    "display",
+    "processing"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "description": "Version of this claim document schema.",
+      "const": "0.1"
+    },
+    "claim_id": {
+      "description": "Identifier for this claim, unique within whatever set the producer maintains.",
+      "type": "string",
+      "minLength": 1
+    },
+    "claim": { "$ref": "#/$defs/claim" },
+    "data_origin": {
+      "description": "Where the underlying data came from. Independent of how far it has been processed.",
+      "$ref": "#/$defs/dataOrigin"
+    },
+    "data_processing": {
+      "description": "How far the underlying data has been transformed. Independent of where it came from.",
+      "$ref": "#/$defs/dataProcessing"
+    },
+    "spatial_scope": { "$ref": "#/$defs/spatialScope" },
+    "temporal_scope": { "$ref": "#/$defs/temporalScope" },
+    "evidence": {
+      "description": "References backing the claim. May be empty: whether a given claim type requires evidence is a linting decision, not a structural one.",
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/$defs/evidenceReference" }
+    },
+    "display": { "$ref": "#/$defs/display" },
+    "processing": { "$ref": "#/$defs/processing" }
+  },
+
+  "$defs": {
+    "dateTime": {
+      "description": "RFC 3339 date-time. A timezone offset is required; a naive local time is not accepted.",
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+
+    "claimType": {
+      "description": "observation: recorded by an instrument or supplied by a data source. estimate: produced by a model, interpolation, or statistical procedure. interpretation: a meaning assigned to an observation or estimate.",
+      "type": "string",
+      "enum": ["observation", "estimate", "interpretation"]
+    },
+
+    "dataOrigin": {
+      "description": "measured: recorded by an instrument. synthetic: generated, for example for a demo or a fixture; this does not mean false. unknown: not established.",
+      "type": "string",
+      "enum": ["measured", "synthetic", "unknown"]
+    },
+
+    "dataProcessing": {
+      "description": "raw: as delivered by the source. derived: computed by a defined deterministic procedure. modeled: produced by a model that adds assumptions; this does not imply synthetic. unknown: not established.",
+      "type": "string",
+      "enum": ["raw", "derived", "modeled", "unknown"]
+    },
+
+    "uncertainty": {
+      "description": "A declared uncertainty about the claimed value. Note that 'lower <= upper' cannot be expressed in JSON Schema and is enforced by the Python model instead.",
+      "type": "object",
+      "required": ["kind"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["interval", "standard_deviation", "qualitative", "unknown"]
+        },
+        "lower": { "type": "number" },
+        "upper": { "type": "number" },
+        "value": { "type": "number" },
+        "unit": { "type": ["string", "null"] },
+        "confidence": {
+          "description": "Confidence level as a fraction, not a percentage.",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "description": { "type": ["string", "null"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "interval" } }, "required": ["kind"] },
+          "then": { "required": ["lower", "upper"] }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "standard_deviation" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["value"],
+            "properties": { "value": { "minimum": 0 } }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "qualitative" } }, "required": ["kind"] },
+          "then": {
+            "required": ["description"],
+            "properties": { "description": { "type": "string", "minLength": 1 } }
+          }
+        }
+      ]
+    },
+
+    "claim": {
+      "description": "The statement being made and the value it carries.",
+      "type": "object",
+      "required": ["type", "statement"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "$ref": "#/$defs/claimType" },
+        "statement": {
+          "description": "The claim in prose, as a reader would understand it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "description": "The claimed value. Arrays and nested objects are out of scope for this version.",
+          "type": ["number", "string", "boolean", "null"]
+        },
+        "unit": { "type": ["string", "null"] },
+        "uncertainty": { "$ref": "#/$defs/uncertainty" }
+      }
+    },
+
+    "spatialScope": {
+      "description": "Where the claim applies. Geometry beyond a bounding box is out of scope for this version; no GIS or CRS transformation is performed.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["type", "name"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "named_area" },
+            "name": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["type", "bbox"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "bbox" },
+            "bbox": {
+              "description": "West, south, east, north. Ordering constraints are enforced by the Python model.",
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": { "type": "number" }
+            },
+            "crs": { "type": "string", "minLength": 1, "default": "EPSG:4326" }
+          }
+        }
+      ]
+    },
+
+    "temporalScope": {
+      "description": "Either a single instant or a period, never both.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["observed_at"],
+          "additionalProperties": false,
+          "properties": { "observed_at": { "$ref": "#/$defs/dateTime" } }
+        },
+        {
+          "type": "object",
+          "required": ["start", "end"],
+          "additionalProperties": false,
+          "properties": {
+            "start": { "$ref": "#/$defs/dateTime" },
+            "end": { "$ref": "#/$defs/dateTime" }
+          }
+        }
+      ]
+    },
+
+    "checksum": {
+      "description": "A digest as recorded by the producer. It is not verified against any artifact and confers no authenticity.",
+      "type": "object",
+      "required": ["algorithm", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": { "type": "string", "minLength": 1 },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    },
+
+    "evidenceReference": {
+      "description": "A pointer to something that backs the claim.",
+      "type": "object",
+      "required": ["id", "type", "title", "uri"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": ["dataset", "file", "url", "record", "other"]
+        },
+        "title": { "type": "string", "minLength": 1 },
+        "uri": { "type": "string", "minLength": 1 },
+        "checksum": { "$ref": "#/$defs/checksum" },
+        "media_type": { "type": ["string", "null"] },
+        "observed_at": { "$ref": "#/$defs/dateTime" },
+        "license": { "type": ["string", "null"] }
+      }
+    },
+
+    "display": {
+      "description": "What a reader is shown.",
+      "type": "object",
+      "required": ["label"],
+      "additionalProperties": false,
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "disclaimer": { "type": ["string", "null"] },
+        "display_value": { "type": ["string", "null"] },
+        "display_unit": { "type": ["string", "null"] }
+      }
+    },
+
+    "processing": {
+      "description": "How the claimed value was produced. Never place credentials, tokens, passwords, or personal data in 'parameters'; this object is written into published artifacts.",
+      "type": "object",
+      "required": ["method"],
+      "additionalProperties": false,
+      "properties": {
+        "method": { "type": "string", "minLength": 1 },
+        "software": { "type": ["string", "null"] },
+        "software_version": { "type": ["string", "null"] },
+        "parameters": {
+          "description": "Free-form JSON object. Deliberately unconstrained so that producers can record their own parameters.",
+          "type": "object"
+        },
+        "workflow_uri": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

@@ -9,8 +9,10 @@ estimates, uncertainty, and supporting evidence.
 
 - The API is **not yet stable**. Anything may change without notice while the
   version is `0.x`.
-- **No linting rules are implemented yet.** This release contains the package
-  skeleton only: packaging, license, CI, and a typed-package marker.
+- **Implemented so far:** the claim document data model, the report data model,
+  and the two JSON Schemas, with synthetic fixtures and contract tests.
+- **Not implemented:** the linting rules, the CLI, and the GitHub Action. No
+  rule exists yet, so nothing is currently checked.
 - Not published to PyPI. Install from a source checkout (see below).
 
 ## Purpose
@@ -56,12 +58,62 @@ Passing this linter means a document is internally consistent about what it
 claims. **It does not mean the underlying data is correct, and it does not make
 any statement legally valid.**
 
-## Data semantics
+## The claim document
+
+A **claim document** is one claim, expressed as a single JSON object, with
+enough context to tell what kind of claim it is. It is the unit this linter
+reads.
+
+```json
+{
+  "schema_version": "0.1",
+  "claim_id": "claim-001",
+  "claim": {
+    "type": "observation",
+    "statement": "A vegetation index was computed for the specified area.",
+    "value": 0.42,
+    "unit": "1"
+  },
+  "data_origin": "measured",
+  "data_processing": "derived",
+  "spatial_scope": { "type": "named_area", "name": "Example Area" },
+  "temporal_scope": { "observed_at": "2026-01-15T01:30:00Z" },
+  "evidence": [
+    {
+      "id": "evidence-001",
+      "type": "dataset",
+      "title": "Example synthetic source record",
+      "uri": "urn:example:evidence:001"
+    }
+  ],
+  "display": { "label": "Measured vegetation index" },
+  "processing": { "method": "Example index calculation" }
+}
+```
+
+All ten top-level fields are required. `evidence` may be an empty array:
+whether a particular kind of claim needs evidence is a policy question, and
+policy belongs in a configurable rule rather than in the definition of what a
+document *is*.
+
+### Claim types
+
+| Value | Meaning |
+|---|---|
+| `observation` | Recorded by an instrument or supplied by a data source. |
+| `estimate` | Produced by a model, an interpolation, or a statistical procedure. |
+| `interpretation` | A meaning assigned to an observation or an estimate. |
+
+`prediction` is deliberately absent. A statement about the future raises
+questions this version does not attempt to answer — how the forecast horizon is
+declared, and how a claim is reconciled against what later happened.
+
+### Data semantics
 
 A claim document describes its data along **two independent axes**. A single
 `real` / `mock` flag conflates them and is not used.
 
-### `data_origin` — where the data came from
+#### `data_origin` — where the data came from
 
 | Value | Meaning |
 |---|---|
@@ -69,7 +121,7 @@ A claim document describes its data along **two independent axes**. A single
 | `synthetic` | Generated, for example for a demo, a test fixture, or a placeholder. |
 | `unknown` | Not established. |
 
-### `data_processing` — how far it has been transformed
+#### `data_processing` — how far it has been transformed
 
 | Value | Meaning |
 |---|---|
@@ -89,6 +141,74 @@ Notes on reading these values:
 - A measured, derived value (for example a spectral index computed from measured
   bands) is `data_origin: measured`, `data_processing: derived`.
 
+### Uncertainty
+
+Uncertainty is optional and attaches to the claim. Four kinds are recognised:
+
+| `kind` | Requires | Optional |
+|---|---|---|
+| `interval` | `lower`, `upper` | `unit`, `confidence`, `description` |
+| `standard_deviation` | `value` (non-negative) | `unit`, `confidence`, `description` |
+| `qualitative` | `description` | `confidence` |
+| `unknown` | — | `description` |
+
+`confidence` is a fraction between 0 and 1, not a percentage.
+
+An estimate that declares no uncertainty is still a **valid document**. Whether
+it should be allowed is a rule, and rules are configurable; the schema stays out
+of that argument.
+
+### Scope
+
+`spatial_scope` is either a `named_area` or a `bbox`; nothing more expressive is
+supported, and no GIS or coordinate transformation is performed.
+`temporal_scope` is either a single `observed_at` instant or a `start`/`end`
+period — never both. All timestamps are RFC 3339 and must carry a timezone
+offset.
+
+## Schemas
+
+Two JSON Schemas ([Draft 2020-12](https://json-schema.org/draft/2020-12/schema))
+ship inside the package:
+
+| Schema | `$id` |
+|---|---|
+| Claim document | `https://schemas.orbseekr.jp/eo-claim-lint/claim-document-0.1.schema.json` |
+| Linter report | `https://schemas.orbseekr.jp/eo-claim-lint/lint-output-1.0.schema.json` |
+
+**Those `$id` values are canonical identifiers, not download locations.** They
+name the schemas so that two documents can agree on which version they mean.
+Retrieval from those URLs is **not guaranteed**, and nothing in this package
+ever fetches them. The schema files are bundled in the wheel and read through
+`importlib.resources`, so **no network access is required at any point** and
+neither schema contains an external `$ref`.
+
+Load them from Python:
+
+```python
+from eo_claim_lint import load_claim_document_schema, load_lint_output_schema
+
+schema = load_claim_document_schema()
+```
+
+Each call returns a fresh object, so a caller that modifies a schema before
+handing it to a validator cannot affect the next caller.
+
+## Report format
+
+A report records what a run found. `valid` is **derived from the issues, never
+supplied**: it is false when any issue has `error` severity, and warnings or
+info alone leave a report valid. There is no way to express a report that
+claims to be valid while carrying an error.
+
+Rule identifiers match `^EOC[0-9]{3}$` and are grouped by concern: `EOC0xx`
+document contract, `EOC1xx` observation and estimate separation, `EOC2xx` claim
+safety, `EOC3xx` provenance and evidence, `EOC4xx` data origin and processing.
+Identifiers are never reused, including after a rule is withdrawn.
+
+`doc_url` is nullable and is currently always null: the rule documentation pages
+do not exist yet, and a URL that resolves to nothing is worse than none.
+
 ## Installation
 
 Not on PyPI yet. From a checkout:
@@ -101,26 +221,66 @@ python -m pip install -e ".[dev]"
 
 On Windows, activate with `.venv\Scripts\activate` instead.
 
+The package has **no runtime dependencies**. `jsonschema` is a development
+dependency only — it is used to test the bundled schemas, never to validate
+anything at runtime.
+
 ## Current usage
 
-There is no CLI and no linting functionality yet. What works today is importing
-the package and reading its version:
+There is no CLI and no linting functionality yet. What works today is building
+and serialising documents, and reading the schemas:
 
 ```python
-import eo_claim_lint
+from datetime import UTC, datetime
 
-print(eo_claim_lint.__version__)
+from eo_claim_lint import (
+    ClaimDocument,
+    ClaimType,
+    ClaimValue,
+    DataOrigin,
+    DataProcessing,
+    DisplayInfo,
+    NamedAreaScope,
+    ProcessingInfo,
+    TemporalScope,
+)
+
+document = ClaimDocument(
+    claim_id="claim-001",
+    claim=ClaimValue(
+        type=ClaimType.OBSERVATION,
+        statement="A vegetation index was computed for the specified area.",
+        value=0.42,
+        unit="1",
+    ),
+    data_origin=DataOrigin.MEASURED,
+    data_processing=DataProcessing.DERIVED,
+    spatial_scope=NamedAreaScope(name="Example Area"),
+    temporal_scope=TemporalScope(observed_at=datetime(2026, 1, 15, 1, 30, tzinfo=UTC)),
+    display=DisplayInfo(label="Measured vegetation index"),
+    processing=ProcessingInfo(method="Example index calculation"),
+)
+
+print(document.to_dict())
 ```
 
 Commands such as `eo-claim-lint check` are planned but **do not exist yet**.
+
+## Test fixtures
+
+Every fixture under `tests/fixtures/` is **entirely fictional** — invented place
+names, synthetic coordinates, `urn:example:` URIs, and placeholder checksums
+that digest nothing. A fixture declaring `"data_origin": "measured"` is a
+synthetic example of a document that *claims* measured origin; it is not
+measured data. See [`tests/fixtures/README.md`](tests/fixtures/README.md).
 
 ## Roadmap
 
 In order:
 
-1. **Schema** — a JSON Schema for the claim document, and one for the linter's
-   own output.
-2. **Models** — the result and issue types the rules produce.
+1. ~~**Schema** — a JSON Schema for the claim document, and one for the
+   linter's own output.~~ Done.
+2. ~~**Models** — the result and issue types the rules produce.~~ Done.
 3. **Rule engine** — the rules themselves, with stable rule IDs.
 4. **CLI** — `check`, `rules`, `schema`, `init`, with documented exit codes.
 5. **GitHub Action** — a composite action that needs no secrets.

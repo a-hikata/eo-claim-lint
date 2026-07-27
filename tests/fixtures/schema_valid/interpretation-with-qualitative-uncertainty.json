@@ -1,0 +1,34 @@
+{
+  "schema_version": "0.1",
+  "claim_id": "claim-006",
+  "claim": {
+    "type": "interpretation",
+    "statement": "The example series is read as showing a gradual increase.",
+    "value": "increasing",
+    "uncertainty": {
+      "kind": "qualitative",
+      "description": "The direction is clear; the magnitude is not established.",
+      "confidence": 0.5
+    }
+  },
+  "data_origin": "measured",
+  "data_processing": "derived",
+  "spatial_scope": { "type": "named_area", "name": "Example Region" },
+  "temporal_scope": {
+    "start": "2026-01-01T00:00:00Z",
+    "end": "2026-06-30T23:59:59Z"
+  },
+  "evidence": [
+    {
+      "id": "evidence-006",
+      "type": "other",
+      "title": "Example synthetic trend summary",
+      "uri": "urn:example:evidence:006"
+    }
+  ],
+  "display": {
+    "label": "Interpreted trend",
+    "disclaimer": "An interpretation of the example series."
+  },
+  "processing": { "method": "Example qualitative reading" }
+}

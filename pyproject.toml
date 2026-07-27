@@ -47,6 +47,12 @@ dev = [
     "mypy>=1.11",
     "build>=1.2",
     "twine>=5.1",
+    # Used only to check the bundled schemas in tests. The package itself never
+    # validates against a schema at runtime, so this stays out of `dependencies`.
+    "jsonschema>=4.23",
+    # jsonschema ships no py.typed marker, so its types come from a stub package
+    # rather than from a blanket mypy exemption.
+    "types-jsonschema>=4.23",
 ]
 
 [tool.hatch.build.targets.wheel]

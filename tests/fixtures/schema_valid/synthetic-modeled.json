@@ -1,0 +1,38 @@
+{
+  "schema_version": "0.1",
+  "claim_id": "claim-003",
+  "claim": {
+    "type": "estimate",
+    "statement": "A demonstration value was produced by an example model.",
+    "value": 12.5,
+    "unit": "example_unit",
+    "uncertainty": {
+      "kind": "standard_deviation",
+      "value": 1.25,
+      "unit": "example_unit",
+      "confidence": 0.68,
+      "description": "Spread reported by the example model."
+    }
+  },
+  "data_origin": "synthetic",
+  "data_processing": "modeled",
+  "spatial_scope": { "type": "named_area", "name": "Example Region" },
+  "temporal_scope": { "observed_at": "2026-02-01T00:00:00Z" },
+  "evidence": [
+    {
+      "id": "evidence-003",
+      "type": "record",
+      "title": "Example synthetic model run record",
+      "uri": "urn:example:evidence:003"
+    }
+  ],
+  "display": {
+    "label": "Modelled example value",
+    "disclaimer": "Generated for demonstration; not derived from any instrument."
+  },
+  "processing": {
+    "method": "Example model",
+    "software": "example-model",
+    "software_version": "0.3.1"
+  }
+}

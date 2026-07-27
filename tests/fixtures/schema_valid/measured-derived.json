@@ -1,0 +1,36 @@
+{
+  "schema_version": "0.1",
+  "claim_id": "claim-002",
+  "claim": {
+    "type": "observation",
+    "statement": "A vegetation index was computed for the specified area.",
+    "value": 0.42,
+    "unit": "1"
+  },
+  "data_origin": "measured",
+  "data_processing": "derived",
+  "spatial_scope": { "type": "named_area", "name": "Example Area" },
+  "temporal_scope": { "observed_at": "2026-01-15T01:30:00Z" },
+  "evidence": [
+    {
+      "id": "evidence-002",
+      "type": "dataset",
+      "title": "Example synthetic band record",
+      "uri": "urn:example:evidence:002",
+      "media_type": "application/json",
+      "license": "CC0-1.0"
+    }
+  ],
+  "display": {
+    "label": "Measured vegetation index",
+    "disclaimer": null,
+    "display_value": "0.42",
+    "display_unit": "index"
+  },
+  "processing": {
+    "method": "Example index calculation",
+    "software": "example-tool",
+    "software_version": "1.0.0",
+    "parameters": { "window_days": 10, "mask": "example-mask" }
+  }
+}

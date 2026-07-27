@@ -1,0 +1,15 @@
+{
+  "schema_version": "0.1",
+  "claim_id": "claim-104",
+  "claim": {
+    "type": "observation",
+    "statement": "A value was recorded for the specified area."
+  },
+  "data_origin": "measured",
+  "data_processing": "raw",
+  "spatial_scope": { "type": "named_area", "name": "Example Area" },
+  "temporal_scope": { "observed_at": "2026-01-15 01:30:00" },
+  "evidence": [],
+  "display": { "label": "Recorded example value" },
+  "processing": { "method": "Example procedure" }
+}

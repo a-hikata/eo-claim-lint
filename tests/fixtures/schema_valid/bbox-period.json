@@ -1,0 +1,42 @@
+{
+  "schema_version": "0.1",
+  "claim_id": "claim-007",
+  "claim": {
+    "type": "observation",
+    "statement": "An example aggregate was recorded over the specified box and period.",
+    "value": 7,
+    "unit": "count"
+  },
+  "data_origin": "measured",
+  "data_processing": "raw",
+  "spatial_scope": {
+    "type": "bbox",
+    "bbox": [10.0, 10.0, 11.0, 11.0],
+    "crs": "EPSG:4326"
+  },
+  "temporal_scope": {
+    "start": "2026-01-01T00:00:00Z",
+    "end": "2026-01-31T23:59:59+00:00"
+  },
+  "evidence": [
+    {
+      "id": "evidence-007",
+      "type": "file",
+      "title": "Example synthetic archive entry",
+      "uri": "urn:example:evidence:007",
+      "checksum": {
+        "algorithm": "sha256",
+        "value": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "media_type": "application/octet-stream",
+      "observed_at": "2026-02-01T00:00:00Z",
+      "license": "CC0-1.0"
+    }
+  ],
+  "display": { "label": "Recorded example aggregate", "display_unit": "items" },
+  "processing": {
+    "method": "Example count over the box",
+    "software": "example-tool",
+    "software_version": "1.0.0"
+  }
+}

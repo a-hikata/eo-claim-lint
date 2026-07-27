@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbseekr.jp/eo-claim-lint/lint-output-1.0.schema.json",
+  "title": "eo-claim-lint report",
+  "description": "The findings of one linting run. 'valid' is derived from the issues and is never supplied by the caller.",
+  "type": "object",
+  "required": ["schema_version", "tool", "valid", "issues"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "description": "Version of this report schema.",
+      "const": "1.0"
+    },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "const": "eo-claim-lint" },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "valid": {
+      "description": "False when at least one issue has error severity. Warnings and info alone leave a report valid.",
+      "type": "boolean"
+    },
+    "issues": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/issue" }
+    }
+  },
+
+  "$defs": {
+    "issue": {
+      "type": "object",
+      "required": ["rule_id", "severity", "message", "path", "field", "doc_url", "context"],
+      "additionalProperties": false,
+      "properties": {
+        "rule_id": {
+          "description": "EOC0xx document contract, EOC1xx observation and estimate separation, EOC2xx claim safety, EOC3xx provenance and evidence, EOC4xx data origin and processing. Rule ids are never reused.",
+          "type": "string",
+          "pattern": "^EOC[0-9]{3}$"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["info", "warning", "error"]
+        },
+        "message": { "type": "string", "minLength": 1 },
+        "path": {
+          "description": "JSONPath-like location within the checked document. Full JSONPath conformance is not guaranteed.",
+          "type": "string",
+          "minLength": 1
+        },
+        "field": { "type": ["string", "null"] },
+        "doc_url": {
+          "description": "Documentation for the rule. Null until the rule pages exist; a URL is never fabricated.",
+          "type": ["string", "null"]
+        },
+        "context": {
+          "description": "Machine-readable detail about this issue. Must not carry the checked document in full, nor any credential or personal data.",
+          "type": "object"
+        }
+      }
+    }
+  }
+}

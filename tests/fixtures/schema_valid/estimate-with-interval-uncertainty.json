@@ -1,0 +1,40 @@
+{
+  "schema_version": "0.1",
+  "claim_id": "claim-005",
+  "claim": {
+    "type": "estimate",
+    "statement": "An example quantity was estimated for the specified area.",
+    "value": 0.55,
+    "unit": "1",
+    "uncertainty": {
+      "kind": "interval",
+      "lower": 0.48,
+      "upper": 0.62,
+      "unit": "1",
+      "confidence": 0.9,
+      "description": "Interval reported by the example estimator."
+    }
+  },
+  "data_origin": "measured",
+  "data_processing": "modeled",
+  "spatial_scope": { "type": "named_area", "name": "Example Area" },
+  "temporal_scope": { "observed_at": "2026-04-05T03:00:00Z" },
+  "evidence": [
+    {
+      "id": "evidence-005",
+      "type": "dataset",
+      "title": "Example synthetic input series",
+      "uri": "urn:example:evidence:005"
+    }
+  ],
+  "display": {
+    "label": "Estimated example quantity",
+    "disclaimer": "An estimate, not a measurement."
+  },
+  "processing": {
+    "method": "Example estimator",
+    "software": "example-estimator",
+    "software_version": "2.0.0",
+    "workflow_uri": "urn:example:workflow:005"
+  }
+}

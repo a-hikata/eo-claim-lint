@@ -1,0 +1,24 @@
+{
+  "schema_version": "0.1",
+  "claim_id": "claim-001",
+  "claim": {
+    "type": "observation",
+    "statement": "Surface reflectance was recorded for the specified area.",
+    "value": 0.31,
+    "unit": "1"
+  },
+  "data_origin": "measured",
+  "data_processing": "raw",
+  "spatial_scope": { "type": "named_area", "name": "Example Area" },
+  "temporal_scope": { "observed_at": "2026-01-15T01:30:00Z" },
+  "evidence": [
+    {
+      "id": "evidence-001",
+      "type": "dataset",
+      "title": "Example synthetic source record",
+      "uri": "urn:example:evidence:001"
+    }
+  ],
+  "display": { "label": "Recorded surface reflectance" },
+  "processing": { "method": "Example passthrough of the delivered product" }
+}
