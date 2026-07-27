@@ -10,9 +10,9 @@ estimates, uncertainty, and supporting evidence.
 - The API is **not yet stable**. Anything may change without notice while the
   version is `0.x`.
 - **Implemented so far:** the claim document data model, the report data model,
-  and the two JSON Schemas, with synthetic fixtures and contract tests.
-- **Not implemented:** the linting rules, the CLI, and the GitHub Action. No
-  rule exists yet, so nothing is currently checked.
+  the two JSON Schemas, and a deterministic rule engine with ten rules.
+- **Not implemented:** the CLI and the GitHub Action. Linting is available as a
+  Python API only.
 - Not published to PyPI. Install from a source checkout (see below).
 
 ## Purpose
@@ -209,6 +209,120 @@ Identifiers are never reused, including after a rule is withdrawn.
 `doc_url` is nullable and is currently always null: the rule documentation pages
 do not exist yet, and a URL that resolves to nothing is worse than none.
 
+## Linting
+
+### What the rules add that the schema does not
+
+The schema answers *is this a document?* — required fields, types, enumerated
+values, basic formats. It is a structural question with a structural answer.
+
+The rules answer *does this document contradict itself?* That question is not
+structural, and it has no single right answer: whether an estimate must declare
+uncertainty depends on the project. So the schema stays permissive and the
+rules carry the judgement, which is why they can be switched off individually
+while the schema cannot.
+
+None of it inspects the numbers. A claim of 0.42 that should have been 4.2 will
+pass every rule here.
+
+### The rules
+
+| ID | Default | What it looks for |
+|---|---|---|
+| `EOC101` | warning | An estimate that declares no uncertainty. |
+| `EOC102` | warning | An observation whose data is marked as `modeled`. |
+| `EOC103` | warning | An interpretation with neither uncertainty nor disclaimer. |
+| `EOC201` | warning | A display label that contradicts the claim type. |
+| `EOC202` | warning | A displayed unit that differs from the recorded unit. |
+| `EOC203` | warning | Definitive wording while the uncertainty is `unknown`. |
+| `EOC301` | **error** | A claim that references no evidence at all. |
+| `EOC302` | warning | Modeled data that names no software or version. |
+| `EOC401` | warning | Synthetic origin the display does not disclose. |
+| `EOC402` | warning | Unknown origin the display does not disclose. |
+
+`EOC301` is the only error by default. A claim published with nothing behind it
+cannot be checked by anyone, which is the failure this tool exists to prevent.
+Everything else asks for a second look rather than asserting a defect.
+
+Each rule documents its own false-positive conditions in its docstring. Two are
+worth knowing before you start:
+
+- **`EOC202` compares units as plain strings.** A dimensionless value recorded
+  as `"1"` and displayed as `"index"` is correct in both places and will still
+  be reported. Lower its severity if you render units for humans.
+- **`EOC201` recognises a handful of English words only.** A label that
+  overstates without using one of them is not caught, and a label in another
+  language is not examined at all.
+
+### Running the rules
+
+```python
+from eo_claim_lint import ClaimDocument, lint_document
+
+document = ClaimDocument.from_dict(payload)
+result = lint_document(document)
+
+print(result.valid)
+for issue in result.issues:
+    print(issue.rule_id, issue.severity, issue.path, issue.message)
+```
+
+Issues come back sorted by rule id, then path, then field, then message, so two
+runs over the same document produce identical output.
+
+### Selecting and adjusting rules
+
+```python
+from eo_claim_lint import RuleConfig, Severity, lint_document
+
+config = RuleConfig(
+    disabled=frozenset({"EOC202"}),
+    severity_overrides={"EOC301": Severity.WARNING},
+)
+result = lint_document(document, config=config)
+```
+
+Configuration selects rules and adjusts severities. It never changes *what* a
+rule considers wrong — a rule whose meaning varies with configuration produces
+findings that cannot be compared between projects. Naming a rule that does not
+exist is an error rather than a silent no-op.
+
+Reading configuration from a file is not implemented yet; `RuleConfig` is
+constructed in Python.
+
+### When a rule itself fails
+
+A rule that raises produces a `RuleExecutionError`, not an issue. A broken rule
+is a defect in this package, not a finding about your document, and reporting
+one as the other would hide the difference. A future CLI will map it to its own
+exit status.
+
+### What linting does not do
+
+- It does not recompute or verify any number.
+- It does not establish that a claim is legally valid or admissible.
+- It does not access the network, read files, or consult the environment. Rules
+  see the document they were handed and nothing else.
+
+## Public API
+
+Everything below is importable from `eo_claim_lint` directly:
+
+- **Linting** — `lint_document`, `RuleConfig`, `Rule`, `RuleExecutionError`,
+  `get_default_rules`, `get_rule`
+- **Document model** — `ClaimDocument`, `ClaimValue`, `Uncertainty`,
+  `NamedAreaScope`, `BoundingBoxScope`, `SpatialScope`, `TemporalScope`,
+  `EvidenceReference`, `Checksum`, `DisplayInfo`, `ProcessingInfo`
+- **Report model** — `LintResult`, `LintIssue`, `Severity`
+- **Enumerations** — `ClaimType`, `DataOrigin`, `DataProcessing`,
+  `EvidenceType`, `UncertaintyKind`
+- **Schemas** — `load_claim_document_schema`, `load_lint_output_schema`,
+  `CLAIM_DOCUMENT_SCHEMA_ID`, `LINT_OUTPUT_SCHEMA_ID`
+- **Errors** — `EoClaimLintError`
+
+Concrete rule classes live in `eo_claim_lint.rules.*` and are reached through
+`get_rule`; they are not exported at the top level.
+
 ## Installation
 
 Not on PyPI yet. From a checkout:
@@ -227,8 +341,8 @@ anything at runtime.
 
 ## Current usage
 
-There is no CLI and no linting functionality yet. What works today is building
-and serialising documents, and reading the schemas:
+There is no CLI yet; linting runs through the Python API shown above. Building
+and serialising documents works too:
 
 ```python
 from datetime import UTC, datetime
@@ -281,7 +395,7 @@ In order:
 1. ~~**Schema** — a JSON Schema for the claim document, and one for the
    linter's own output.~~ Done.
 2. ~~**Models** — the result and issue types the rules produce.~~ Done.
-3. **Rule engine** — the rules themselves, with stable rule IDs.
+3. ~~**Rule engine** — the rules themselves, with stable rule IDs.~~ Done.
 4. **CLI** — `check`, `rules`, `schema`, `init`, with documented exit codes.
 5. **GitHub Action** — a composite action that needs no secrets.
 

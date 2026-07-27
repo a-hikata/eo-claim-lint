@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.1",
+  "claim_id": "claim-305",
+  "claim": {
+    "type": "observation",
+    "statement": "A value is on file, but its origin was never established.",
+    "value": 7,
+    "unit": "count"
+  },
+  "data_origin": "unknown",
+  "data_processing": "unknown",
+  "spatial_scope": { "type": "named_area", "name": "Example Area" },
+  "temporal_scope": { "observed_at": "2026-04-05T03:00:00Z" },
+  "evidence": [
+    {
+      "id": "evidence-305",
+      "type": "other",
+      "title": "Example synthetic archive note",
+      "uri": "urn:example:evidence:305"
+    }
+  ],
+  "display": {
+    "label": "Unattributed example value",
+    "disclaimer": "The origin of this value has not been established."
+  },
+  "processing": { "method": "Example unrecorded procedure" }
+}

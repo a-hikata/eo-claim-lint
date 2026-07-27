@@ -18,10 +18,21 @@ While the version is `0.x`, the public API may change in any minor release.
 - Added lint output data model and JSON Schema.
 - Added synthetic schema fixtures.
 - Added packaged schema loading helpers.
+- Added deterministic lint rule engine.
+- Added initial EO claim rules (`EOC101`–`EOC103`, `EOC201`–`EOC203`, `EOC301`,
+  `EOC302`, `EOC401`, `EOC402`).
+- Added rule registry and rule configuration.
+- Added synthetic lint-valid and lint-invalid fixtures.
+- Added lint engine contract tests.
 
 ### Notes
 
-- No linting rules, CLI, or GitHub Action are implemented yet.
+- No CLI or GitHub Action is implemented yet. Linting is a Python API.
+- Reading configuration from a file is not implemented; `RuleConfig` is
+  constructed in Python.
+- `EOC301` is the only rule that defaults to error severity.
+- A rule that raises produces `RuleExecutionError` rather than an issue, so a
+  defect in this package is never reported as a finding about a document.
 - `jsonschema` is a development dependency only; the package still has no
   runtime dependencies.
 - One constraint is enforced by the data model rather than by the schema:

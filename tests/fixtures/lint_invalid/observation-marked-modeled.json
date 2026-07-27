@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.1",
+  "claim_id": "claim-204",
+  "claim": {
+    "type": "observation",
+    "statement": "An example value is presented as a recorded quantity.",
+    "value": 0.42,
+    "unit": "1"
+  },
+  "data_origin": "measured",
+  "data_processing": "modeled",
+  "spatial_scope": { "type": "named_area", "name": "Example Area" },
+  "temporal_scope": { "observed_at": "2026-01-15T01:30:00Z" },
+  "evidence": [
+    {
+      "id": "evidence-204",
+      "type": "dataset",
+      "title": "Example synthetic input series",
+      "uri": "urn:example:evidence:204"
+    }
+  ],
+  "display": { "label": "Reanalysis example value" },
+  "processing": {
+    "method": "Example reanalysis",
+    "software": "example-reanalysis",
+    "software_version": "1.2.0"
+  }
+}

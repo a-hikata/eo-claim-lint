@@ -11,7 +11,12 @@
   "data_processing": "raw",
   "spatial_scope": {
     "type": "bbox",
-    "bbox": [10.0, 10.0, 11.0, 11.0],
+    "bbox": [
+      10.0,
+      10.0,
+      11.0,
+      11.0
+    ],
     "crs": "EPSG:4326"
   },
   "temporal_scope": {
@@ -33,7 +38,9 @@
       "license": "CC0-1.0"
     }
   ],
-  "display": { "label": "Recorded example aggregate", "display_unit": "items" },
+  "display": {
+    "label": "Recorded example aggregate"
+  },
   "processing": {
     "method": "Example count over the box",
     "software": "example-tool",

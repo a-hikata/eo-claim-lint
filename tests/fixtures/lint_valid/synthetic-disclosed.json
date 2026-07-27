@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.1",
+  "claim_id": "claim-304",
+  "claim": {
+    "type": "observation",
+    "statement": "A demonstration value stands in for a recorded one.",
+    "value": 12.5,
+    "unit": "example_unit"
+  },
+  "data_origin": "synthetic",
+  "data_processing": "derived",
+  "spatial_scope": { "type": "named_area", "name": "Example Region" },
+  "temporal_scope": { "observed_at": "2026-03-10T12:00:00Z" },
+  "evidence": [
+    {
+      "id": "evidence-304",
+      "type": "record",
+      "title": "Example synthetic generation record",
+      "uri": "urn:example:evidence:304"
+    }
+  ],
+  "display": {
+    "label": "Demonstration value",
+    "disclaimer": "Generated for demonstration; not recorded by an instrument."
+  },
+  "processing": { "method": "Example generator" }
+}

@@ -1,11 +1,12 @@
 {
   "schema_version": "0.1",
-  "claim_id": "claim-201",
+  "claim_id": "claim-208",
   "claim": {
     "type": "estimate",
     "statement": "An example quantity was estimated for the specified area.",
     "value": 0.55,
-    "unit": "1"
+    "unit": "1",
+    "uncertainty": { "kind": "interval", "lower": 0.48, "upper": 0.62 }
   },
   "data_origin": "measured",
   "data_processing": "modeled",
@@ -13,19 +14,12 @@
   "temporal_scope": { "observed_at": "2026-01-15T01:30:00Z" },
   "evidence": [
     {
-      "id": "evidence-201",
+      "id": "evidence-208",
       "type": "dataset",
       "title": "Example synthetic input series",
-      "uri": "urn:example:evidence:201"
+      "uri": "urn:example:evidence:208"
     }
   ],
-  "display": {
-    "label": "Estimated example quantity",
-    "disclaimer": "An estimate, not a measurement."
-  },
-  "processing": {
-    "method": "Example estimator",
-    "software": "example-estimator",
-    "software_version": "2.0.0"
-  }
+  "display": { "label": "Estimated example quantity" },
+  "processing": { "method": "Example estimator" }
 }

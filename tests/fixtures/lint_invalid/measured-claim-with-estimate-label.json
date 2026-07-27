@@ -6,11 +6,7 @@
     "statement": "An example quantity was estimated for the specified area.",
     "value": 0.55,
     "unit": "1",
-    "uncertainty": {
-      "kind": "interval",
-      "lower": 0.48,
-      "upper": 0.62
-    }
+    "uncertainty": { "kind": "interval", "lower": 0.48, "upper": 0.62 }
   },
   "data_origin": "measured",
   "data_processing": "modeled",
@@ -24,9 +20,10 @@
       "uri": "urn:example:evidence:203"
     }
   ],
-  "display": {
-    "label": "Measured example quantity",
-    "display_value": "0.55"
-  },
-  "processing": { "method": "Example estimator" }
+  "display": { "label": "Measured example quantity" },
+  "processing": {
+    "method": "Example estimator",
+    "software": "example-estimator",
+    "software_version": "2.0.0"
+  }
 }

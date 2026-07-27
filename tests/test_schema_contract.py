@@ -73,13 +73,8 @@ EXPECTED_INVALID: Final = frozenset(
     }
 )
 
-EXPECTED_LINT_INVALID: Final = frozenset(
-    {
-        "estimate-without-uncertainty.json",
-        "interpretation-without-evidence.json",
-        "measured-claim-with-estimate-label.json",
-    }
-)
+# The exact lint fixture set, and which rule each one trips, is owned by
+# tests/test_engine.py. Here we only care that they are schema-valid.
 
 
 def _load(path: Path) -> object:
@@ -106,6 +101,8 @@ def _errors(document: object) -> Iterator[str]:
 VALID_FILES: Final = _files("schema_valid")
 INVALID_FILES: Final = _files("schema_invalid")
 LINT_INVALID_FILES: Final = _files("lint_invalid")
+LINT_VALID_FILES: Final = _files("lint_valid")
+LINT_FILES: Final = LINT_VALID_FILES + LINT_INVALID_FILES
 
 
 # --------------------------------------------------------------------------
@@ -129,7 +126,8 @@ def test_lint_output_schema_is_a_valid_schema() -> None:
 def test_expected_fixtures_are_present() -> None:
     assert set(_ids(VALID_FILES)) == EXPECTED_VALID
     assert set(_ids(INVALID_FILES)) == EXPECTED_INVALID
-    assert set(_ids(LINT_INVALID_FILES)) == EXPECTED_LINT_INVALID
+    assert LINT_VALID_FILES
+    assert LINT_INVALID_FILES
 
 
 # --------------------------------------------------------------------------
@@ -187,14 +185,14 @@ def test_invalid_fixture_is_rejected_by_the_expected_layer(path: Path) -> None:
 # --------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("path", LINT_INVALID_FILES, ids=_ids(LINT_INVALID_FILES))
-def test_lint_invalid_fixture_passes_the_schema(path: Path) -> None:
-    """These are structurally fine. Only a rule can object to them."""
+@pytest.mark.parametrize("path", LINT_FILES, ids=_ids(LINT_FILES))
+def test_lint_fixture_passes_the_schema(path: Path) -> None:
+    """Lint fixtures are structurally fine on both sides. Only a rule can object."""
     assert list(_errors(_load(path))) == []
 
 
-@pytest.mark.parametrize("path", LINT_INVALID_FILES, ids=_ids(LINT_INVALID_FILES))
-def test_lint_invalid_fixture_loads_into_the_model(path: Path) -> None:
+@pytest.mark.parametrize("path", LINT_FILES, ids=_ids(LINT_FILES))
+def test_lint_fixture_loads_into_the_model(path: Path) -> None:
     assert ClaimDocument.from_dict(_load(path)).claim_id
 
 
