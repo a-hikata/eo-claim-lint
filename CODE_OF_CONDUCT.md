@@ -1,12 +1,5 @@
 # Contributor Covenant Code of Conduct
 
-> **Enforcement contact is not established yet.**
->
-> This repository has no public remote at the time of writing, so no reporting
-> address can be published. Reports cannot currently be received through this
-> document. **This must be resolved before the project is made public** — see
-> "Enforcement" below.
-
 ## Our Pledge
 
 We as members, contributors, and leaders pledge to make participation in our
@@ -65,19 +58,40 @@ representative at an online or offline event.
 
 ## Enforcement
 
-**TODO — pre-publication blocker.** Instances of abusive, harassing, or
-otherwise unacceptable behavior may be reported to the community leaders
-responsible for enforcement at:
+Instances of abusive, harassing, or otherwise unacceptable behavior can be
+reported through either of the channels below. **Both are private.** Please do
+not report an incident in a public issue or pull request — doing so exposes the
+person you are reporting about, and often the reporter as well.
 
-> _No contact address has been designated yet._
+### Reporting to GitHub
 
-Before this repository is made public, this section must be replaced with a
-working reporting channel. Do not substitute a personal email address without
-the maintainer's explicit decision to publish it.
+**[Report abuse to GitHub](https://github.com/contact/report-abuse)** — GitHub's
+Trust & Safety team.
 
-All complaints will be reviewed and investigated promptly and fairly. All
-community leaders are obligated to respect the privacy and security of the
-reporter of any incident.
+This is the channel to use **if your report concerns the maintainer**, or if for
+any reason you would rather not send it to this repository. It works
+independently of whoever maintains this project, which is the point: a code of
+conduct that can only be enforced by the person you are reporting is not
+enforcement.
+
+### Reporting to the maintainer
+
+**[Open a private report](https://github.com/a-hikata/eo-claim-lint/security/advisories/new)**
+under the repository's Security tab. It is visible only to you and the
+maintainer.
+
+That form is labelled for security vulnerabilities, because it is the only
+private channel a repository has. Using it for a conduct report is not a
+mistake — say at the top of the report that it concerns conduct rather than a
+vulnerability, and it will be handled as such and never published as an
+advisory.
+
+### After a report
+
+All complaints will be reviewed and investigated promptly and fairly. The
+privacy and security of the reporter will be respected. Where a report concerns
+the maintainer, the GitHub channel above is the appropriate route and no
+response from the maintainer should be expected or required.
 
 ## Enforcement Guidelines
 

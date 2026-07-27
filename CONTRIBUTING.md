@@ -93,6 +93,9 @@ logic does not belong in this project.
 - **Pull requests**: describe the change and its motivation, link the issue it
   addresses, and confirm that all checks above pass locally.
 - Security problems do not go in public issues. See [SECURITY.md](SECURITY.md).
+- Participation is covered by the [Code of Conduct](CODE_OF_CONDUCT.md).
+  Conduct problems do not go in public issues either — that document explains
+  the two private channels, one of which does not route through the maintainer.
 
 ## License
 

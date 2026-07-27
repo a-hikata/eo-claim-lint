@@ -648,6 +648,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Two rules matter more than the rest:
 never add real-world locations or personal data to this repository, and every
 new rule needs an ID, a test, and documentation.
 
+Participation is covered by the [Code of Conduct](CODE_OF_CONDUCT.md), which
+also explains how to report a problem privately.
+
 Security reports: see [SECURITY.md](SECURITY.md). Please do not open a public
 issue for a vulnerability.
 
