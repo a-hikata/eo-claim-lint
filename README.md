@@ -220,6 +220,9 @@ format. **If you only want the pull-request check, you are already done.**
   interface, and a composite GitHub Action.
 - **Not implemented:** reading configuration from a file.
 - Not published to PyPI. Install from the repository, as shown above.
+- The Action is exercised on every push by a self-test workflow that runs it
+  against real fixtures on GitHub-hosted runners, covering a clean document, a
+  lint failure, a threshold change, rule selection, and an unreadable input.
 
 ## Command line
 
