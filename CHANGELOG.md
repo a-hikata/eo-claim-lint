@@ -9,7 +9,12 @@ While the version is `0.x`, the public API may change in any minor release.
 
 ## [Unreleased]
 
-**Not released.** These changes exist in the repository only.
+Nothing yet.
+
+## [0.1.0] - 2026-07-27
+
+First release. Rule ids are stable from this release onward and are never
+reused, including after a rule is withdrawn.
 
 ### Added
 
@@ -37,6 +42,9 @@ While the version is `0.x`, the public API may change in any minor release.
 - Added a self-test workflow that exercises the local Action.
 - Added Action metadata contract tests and wrapper unit tests.
 - Added least-privilege workflow examples.
+- Added the project skeleton: `src/` layout, PEP 621 packaging, Apache-2.0
+  license, typed-package marker, and continuous integration for Python 3.11,
+  3.12, and 3.13.
 
 ### Fixed
 
@@ -66,20 +74,3 @@ While the version is `0.x`, the public API may change in any minor release.
 - One constraint is enforced by the data model rather than by the schema:
   `lower <= upper` on an interval compares two sibling values, which JSON
   Schema Draft 2020-12 cannot express.
-
-## [0.1.0] - 2026-07-27
-
-**Not released.** This version exists in the repository only; it has not been
-published to any package index.
-
-### Added
-
-- Initial project structure: `src/` layout, PEP 621 packaging, Apache-2.0
-  license, typed-package marker.
-- Continuous integration for Python 3.11, 3.12, and 3.13.
-- Documentation of the `data_origin` / `data_processing` axes that replace a
-  single `real` / `mock` flag.
-
-### Notes
-
-- No linting rules, CLI, or schema are implemented in this version.
