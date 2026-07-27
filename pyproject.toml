@@ -39,6 +39,9 @@ classifiers = [
 # feature that needs it exists.
 dependencies = []
 
+[project.scripts]
+eo-claim-lint = "eo_claim_lint.cli:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",

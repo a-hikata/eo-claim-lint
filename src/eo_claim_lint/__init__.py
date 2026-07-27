@@ -45,13 +45,16 @@ from eo_claim_lint.rules import (
 )
 from eo_claim_lint.schema import (
     CLAIM_DOCUMENT_SCHEMA_ID,
+    CLI_OUTPUT_SCHEMA_ID,
     LINT_OUTPUT_SCHEMA_ID,
     load_claim_document_schema,
+    load_cli_output_schema,
     load_lint_output_schema,
 )
 
 __all__ = [
     "CLAIM_DOCUMENT_SCHEMA_ID",
+    "CLI_OUTPUT_SCHEMA_ID",
     "LINT_OUTPUT_SCHEMA_ID",
     "BoundingBoxScope",
     "Checksum",
@@ -81,6 +84,7 @@ __all__ = [
     "get_rule",
     "lint_document",
     "load_claim_document_schema",
+    "load_cli_output_schema",
     "load_lint_output_schema",
 ]
 

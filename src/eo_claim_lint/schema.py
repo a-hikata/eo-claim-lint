@@ -18,8 +18,10 @@ from typing import Final
 
 __all__ = [
     "CLAIM_DOCUMENT_SCHEMA_ID",
+    "CLI_OUTPUT_SCHEMA_ID",
     "LINT_OUTPUT_SCHEMA_ID",
     "load_claim_document_schema",
+    "load_cli_output_schema",
     "load_lint_output_schema",
 ]
 
@@ -29,9 +31,11 @@ CLAIM_DOCUMENT_SCHEMA_ID: Final = (
 LINT_OUTPUT_SCHEMA_ID: Final = (
     "https://schemas.orbseekr.jp/eo-claim-lint/lint-output-1.0.schema.json"
 )
+CLI_OUTPUT_SCHEMA_ID: Final = "https://schemas.orbseekr.jp/eo-claim-lint/cli-output-0.1.schema.json"
 
 _CLAIM_DOCUMENT_FILENAME: Final = "claim-document-0.1.schema.json"
 _LINT_OUTPUT_FILENAME: Final = "lint-output-1.0.schema.json"
+_CLI_OUTPUT_FILENAME: Final = "cli-output-0.1.schema.json"
 
 
 def _load(filename: str) -> dict[str, object]:
@@ -50,3 +54,8 @@ def load_claim_document_schema() -> dict[str, object]:
 def load_lint_output_schema() -> dict[str, object]:
     """Return the linter report schema as a new dictionary."""
     return _load(_LINT_OUTPUT_FILENAME)
+
+
+def load_cli_output_schema() -> dict[str, object]:
+    """Return the command-line report schema as a new dictionary."""
+    return _load(_CLI_OUTPUT_FILENAME)

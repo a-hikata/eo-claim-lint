@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.orbseekr.jp/eo-claim-lint/cli-output-0.1.schema.json",
+  "title": "eo-claim-lint command-line report",
+  "description": "The aggregated result of one command-line run over one or more claim documents. 'valid' reports whether any issue reached error severity; it is not the process exit code, which additionally depends on the --fail-on threshold.",
+  "type": "object",
+  "required": ["schema_version", "tool", "valid", "files", "summary"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "description": "Version of this report schema.",
+      "const": "0.1"
+    },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "const": "eo-claim-lint" },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "valid": {
+      "description": "False when any file carries an issue of error severity.",
+      "type": "boolean"
+    },
+    "files": {
+      "description": "One entry per input, in the order the inputs were given. A run that could not read every input produces no report at all, so this array is never partial.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/fileResult" }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["files", "errors", "warnings", "info"],
+      "additionalProperties": false,
+      "properties": {
+        "files": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "integer", "minimum": 0 },
+        "warnings": { "type": "integer", "minimum": 0 },
+        "info": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+
+  "$defs": {
+    "fileResult": {
+      "type": "object",
+      "required": ["source", "valid", "issues"],
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "description": "The path as given on the command line, or the stdin label.",
+          "type": "string",
+          "minLength": 1
+        },
+        "valid": { "type": "boolean" },
+        "issues": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/issue" }
+        }
+      }
+    },
+
+    "issue": {
+      "description": "Identical in shape to an issue in lint-output-1.0. Repeated here rather than referenced, because an external $ref would make validation need the network.",
+      "type": "object",
+      "required": ["rule_id", "severity", "message", "path", "field", "doc_url", "context"],
+      "additionalProperties": false,
+      "properties": {
+        "rule_id": {
+          "description": "EOC0xx document contract, EOC1xx observation and estimate separation, EOC2xx claim safety, EOC3xx provenance and evidence, EOC4xx data origin and processing. Rule ids are never reused.",
+          "type": "string",
+          "pattern": "^EOC[0-9]{3}$"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["info", "warning", "error"]
+        },
+        "message": { "type": "string", "minLength": 1 },
+        "path": {
+          "description": "JSONPath-like location within the checked document. Full JSONPath conformance is not guaranteed.",
+          "type": "string",
+          "minLength": 1
+        },
+        "field": { "type": ["string", "null"] },
+        "doc_url": { "type": ["string", "null"] },
+        "context": {
+          "description": "Machine-readable detail about this issue. Must not carry the checked document in full, nor any credential or personal data.",
+          "type": "object"
+        }
+      }
+    }
+  }
+}

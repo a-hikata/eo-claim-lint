@@ -10,10 +10,178 @@ estimates, uncertainty, and supporting evidence.
 - The API is **not yet stable**. Anything may change without notice while the
   version is `0.x`.
 - **Implemented so far:** the claim document data model, the report data model,
-  the two JSON Schemas, and a deterministic rule engine with ten rules.
-- **Not implemented:** the CLI and the GitHub Action. Linting is available as a
-  Python API only.
+  three JSON Schemas, a deterministic rule engine with ten rules, and a
+  command-line interface.
+- **Not implemented:** the GitHub Action, and reading configuration from a file.
 - Not published to PyPI. Install from a source checkout (see below).
+
+## Quick start
+
+```bash
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+python -m pip install -e ".[dev]"
+
+eo-claim-lint init                 # write an example document
+eo-claim-lint check claim-document.json
+eo-claim-lint rules                # what gets checked
+eo-claim-lint schema claim         # the input schema
+```
+
+The example that `init` writes passes every rule, so the first `check` you run
+succeeds. Break something in it — delete the `evidence` array — and run `check`
+again to see what a finding looks like.
+
+### From input to exit code
+
+```mermaid
+flowchart LR
+  A["claim.json"] --> B["JSON parse"]
+  B --> C["ClaimDocument"]
+  C --> D["rule engine"]
+  D --> E["LintResult"]
+  E --> F{"--format"}
+  F -->|"text"| G["for a person"]
+  F -->|"json"| H["for a program"]
+  F -->|"github"| I["for a pull request"]
+  G & H & I --> J["exit code"]
+  B -.->|"malformed"| K["exit 2"]
+  C -.->|"rejected"| K
+  D -.->|"a rule crashed"| L["exit 3"]
+```
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `check [FILE...]` | Check documents. `-` reads one from stdin. |
+| `rules [--rule ID]` | List the rules, or describe one. |
+| `schema NAME` | Print a bundled schema: `claim`, `lint-output`, `cli-output`. |
+| `init [PATH]` | Write a synthetic example document. |
+
+### `check` options
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--format {text,json,github}` | `text` | Output format. |
+| `--output PATH` | stdout | Write the report to a file. |
+| `--force` | off | Allow `--output` to overwrite. |
+| `--quiet` | off | Drop the summary line; print nothing when clean. |
+| `--fail-on {error,warning,info}` | `error` | Lowest severity that exits 1. |
+| `--enable RULE_ID` | — | Run only these rules. Repeatable. |
+| `--disable RULE_ID` | — | Skip these rules. Repeatable. |
+| `--severity RULE_ID=SEVERITY` | — | Report a rule at another severity. Repeatable. |
+| `--stdin-name NAME` | `<stdin>` | Label to report stdin under. |
+| `--no-color` | off | Accepted for compatibility; output is never coloured. |
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | Nothing at or above the `--fail-on` threshold. |
+| `1` | The threshold was reached. |
+| `2` | The invocation or the input was wrong: missing file, malformed JSON, unknown rule, contradictory options. |
+| `3` | **The linter itself failed.** Not a statement about your document. |
+
+Code `3` exists so that a bug in this package cannot masquerade as a finding
+about your data. If you see it, it is our fault, not the document's.
+
+```mermaid
+flowchart TD
+  A["check"] --> B{"could every input be read and parsed?"}
+  B -->|"no"| C["exit 2"]
+  B -->|"yes"| D{"did a rule crash?"}
+  D -->|"yes"| E["exit 3"]
+  D -->|"no"| F{"any issue at or above --fail-on?"}
+  F -->|"yes"| G["exit 1"]
+  F -->|"no"| H["exit 0"]
+```
+
+### `--fail-on` is not the same as `valid`
+
+`valid` in the JSON report answers *does this document carry an error?*
+The exit code answers *should this build stop?* They can disagree, and both
+answers are correct:
+
+```console
+$ eo-claim-lint check --format json --fail-on warning estimate.json
+{ ... "valid": true, "summary": {"errors": 0, "warnings": 1, "info": 0} }
+$ echo $?
+1
+```
+
+The document carries no error, so the report is valid. You asked to stop on
+warnings, so the process failed. Choose `--fail-on` to express your policy;
+read `valid` to learn what was found.
+
+## Output examples
+
+**text** — one line per finding, then a summary:
+
+```console
+$ eo-claim-lint check bad.json
+bad.json: EOC301 error $.evidence This claim references no evidence. Add at least one reference so that a reader can trace where the value came from.
+1 file checked: 1 error, 0 warnings, 0 info
+```
+
+**json** — nothing but JSON on stdout, matching `cli-output-0.1`:
+
+```json
+{
+  "schema_version": "0.1",
+  "tool": { "name": "eo-claim-lint", "version": "0.1.0" },
+  "valid": false,
+  "files": [
+    {
+      "source": "bad.json",
+      "valid": false,
+      "issues": [
+        {
+          "rule_id": "EOC301",
+          "severity": "error",
+          "message": "This claim references no evidence. …",
+          "path": "$",
+          "field": "evidence",
+          "doc_url": null,
+          "context": { "claim_type": "interpretation" }
+        }
+      ]
+    }
+  ],
+  "summary": { "files": 1, "errors": 1, "warnings": 0, "info": 0 }
+}
+```
+
+**github** — workflow commands that GitHub turns into annotations:
+
+```console
+$ eo-claim-lint check --format github bad.json
+::error file=bad.json,title=EOC301::$.evidence: This claim references no evidence. …
+```
+
+Severities map to `error`, `warning`, and `notice`, because GitHub has no
+"info" annotation. Messages and property values are escaped, so a finding can
+never inject a workflow command of its own.
+
+## Multiple files, and stdin
+
+`check` accepts several paths and reports them in the order given. `-` reads a
+single document from stdin and cannot be combined with file arguments.
+
+**If any input cannot be read, the whole run fails with code 2 and prints no
+report.** A partial report would look exactly like a complete one to whatever
+consumes it, and an unchecked file would quietly pass as checked.
+
+## Schema validation at runtime
+
+`check` does not validate against the JSON Schema. Validation needs a schema
+library, and this package has no runtime dependencies. What it does instead is
+build a `ClaimDocument`, which rejects missing required fields, unknown
+enumerated values, wrong types, and self-inconsistent values such as an
+interval whose lower bound exceeds its upper bound.
+
+The schemas are still shipped, and `eo-claim-lint schema` prints them, so you
+can validate in your own pipeline with the tool of your choice.
 
 ## Purpose
 
@@ -53,6 +221,7 @@ grow into them:
   [textlint](https://textlint.github.io/) for that)
 - GIS processing
 - an MCP server
+- automatic fixing of anything it reports
 
 Passing this linter means a document is internally consistent about what it
 claims. **It does not mean the underlying data is correct, and it does not make
@@ -168,13 +337,14 @@ offset.
 
 ## Schemas
 
-Two JSON Schemas ([Draft 2020-12](https://json-schema.org/draft/2020-12/schema))
+Three JSON Schemas ([Draft 2020-12](https://json-schema.org/draft/2020-12/schema))
 ship inside the package:
 
 | Schema | `$id` |
 |---|---|
 | Claim document | `https://schemas.orbseekr.jp/eo-claim-lint/claim-document-0.1.schema.json` |
-| Linter report | `https://schemas.orbseekr.jp/eo-claim-lint/lint-output-1.0.schema.json` |
+| Linter report (one document) | `https://schemas.orbseekr.jp/eo-claim-lint/lint-output-1.0.schema.json` |
+| Command-line report (one run) | `https://schemas.orbseekr.jp/eo-claim-lint/cli-output-0.1.schema.json` |
 
 **Those `$id` values are canonical identifiers, not download locations.** They
 name the schemas so that two documents can agree on which version they mean.
@@ -254,7 +424,7 @@ worth knowing before you start:
   overstates without using one of them is not caught, and a label in another
   language is not examined at all.
 
-### Running the rules
+### Running the rules from Python
 
 ```python
 from eo_claim_lint import ClaimDocument, lint_document
@@ -317,7 +487,8 @@ Everything below is importable from `eo_claim_lint` directly:
 - **Enumerations** — `ClaimType`, `DataOrigin`, `DataProcessing`,
   `EvidenceType`, `UncertaintyKind`
 - **Schemas** — `load_claim_document_schema`, `load_lint_output_schema`,
-  `CLAIM_DOCUMENT_SCHEMA_ID`, `LINT_OUTPUT_SCHEMA_ID`
+  `load_cli_output_schema`, `CLAIM_DOCUMENT_SCHEMA_ID`, `LINT_OUTPUT_SCHEMA_ID`,
+  `CLI_OUTPUT_SCHEMA_ID`
 - **Errors** — `EoClaimLintError`
 
 Concrete rule classes live in `eo_claim_lint.rules.*` and are reached through
@@ -339,10 +510,9 @@ The package has **no runtime dependencies**. `jsonschema` is a development
 dependency only — it is used to test the bundled schemas, never to validate
 anything at runtime.
 
-## Current usage
+## Building documents in Python
 
-There is no CLI yet; linting runs through the Python API shown above. Building
-and serialising documents works too:
+Documents can be constructed and serialised directly:
 
 ```python
 from datetime import UTC, datetime
@@ -378,8 +548,6 @@ document = ClaimDocument(
 print(document.to_dict())
 ```
 
-Commands such as `eo-claim-lint check` are planned but **do not exist yet**.
-
 ## Test fixtures
 
 Every fixture under `tests/fixtures/` is **entirely fictional** — invented place
@@ -396,8 +564,9 @@ In order:
    linter's own output.~~ Done.
 2. ~~**Models** — the result and issue types the rules produce.~~ Done.
 3. ~~**Rule engine** — the rules themselves, with stable rule IDs.~~ Done.
-4. **CLI** — `check`, `rules`, `schema`, `init`, with documented exit codes.
+4. ~~**CLI** — `check`, `rules`, `schema`, `init`, with documented exit codes.~~ Done.
 5. **GitHub Action** — a composite action that needs no secrets.
+6. **Configuration files** — reading `RuleConfig` from TOML.
 
 ## Contributing
 

@@ -7,6 +7,9 @@ change rather than at whatever else the fixture happened to contain.
 
 from __future__ import annotations
 
+import io
+from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 import pytest
@@ -64,3 +67,22 @@ def config() -> RuleConfig:
 @pytest.fixture
 def clean_document() -> ClaimDocument:
     return make_document()
+
+
+@dataclass(frozen=True)
+class CliRun:
+    """What one in-process CLI invocation produced."""
+
+    code: int
+    stdout: str
+    stderr: str
+
+
+def run_cli(argv: Sequence[str]) -> CliRun:
+    """Invoke the CLI in-process with captured streams."""
+    from eo_claim_lint.cli import main
+
+    out = io.StringIO()
+    err = io.StringIO()
+    code = main(list(argv), stdout=out, stderr=err)
+    return CliRun(code, out.getvalue(), err.getvalue())
