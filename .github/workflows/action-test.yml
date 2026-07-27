@@ -1,0 +1,108 @@
+name: Action self-test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: action-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  passing:
+    name: clean document passes
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - id: lint
+        uses: ./
+        with:
+          files: tests/fixtures/lint_valid/observation-fully-qualified.json
+      - name: Assert outputs
+        shell: bash
+        run: |
+          test "${{ steps.lint.outputs.exit-code }}" = "0"
+          test "${{ steps.lint.outputs.outcome }}" = "passed"
+
+  failing:
+    name: missing evidence fails
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      # The step is expected to fail. `continue-on-error` is used here to assert
+      # that failure; a real workflow wants the failure to stop the run.
+      - id: lint
+        uses: ./
+        continue-on-error: true
+        with:
+          files: tests/fixtures/lint_invalid/interpretation-without-evidence.json
+      - name: Assert the step failed with a lint failure
+        shell: bash
+        run: |
+          test "${{ steps.lint.outcome }}" = "failure"
+          test "${{ steps.lint.outputs.exit-code }}" = "1"
+          test "${{ steps.lint.outputs.outcome }}" = "lint-failed"
+
+  warning-threshold:
+    name: fail-on warning turns a warning into a failure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - id: default-threshold
+        uses: ./
+        with:
+          files: tests/fixtures/lint_invalid/estimate-without-uncertainty.json
+      - id: strict-threshold
+        uses: ./
+        continue-on-error: true
+        with:
+          files: tests/fixtures/lint_invalid/estimate-without-uncertainty.json
+          fail-on: warning
+      - name: Assert the threshold changed the outcome
+        shell: bash
+        run: |
+          test "${{ steps.default-threshold.outputs.exit-code }}" = "0"
+          test "${{ steps.strict-threshold.outputs.exit-code }}" = "1"
+
+  rule-selection:
+    name: disable and severity change what is reported
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - id: disabled
+        uses: ./
+        with:
+          files: tests/fixtures/lint_invalid/interpretation-without-evidence.json
+          disable: EOC301
+      - id: downgraded
+        uses: ./
+        with:
+          files: tests/fixtures/lint_invalid/interpretation-without-evidence.json
+          severity: EOC301=warning
+      - name: Assert both runs passed
+        shell: bash
+        run: |
+          test "${{ steps.disabled.outputs.outcome }}" = "passed"
+          test "${{ steps.downgraded.outputs.outcome }}" = "passed"
+
+  usage-error:
+    name: an unreadable input is a usage error
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - id: lint
+        uses: ./
+        continue-on-error: true
+        with:
+          files: tests/fixtures/does-not-exist.json
+      - name: Assert exit code 2
+        shell: bash
+        run: |
+          test "${{ steps.lint.outputs.exit-code }}" = "2"
+          test "${{ steps.lint.outputs.outcome }}" = "usage-error"

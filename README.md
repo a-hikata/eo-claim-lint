@@ -10,10 +10,12 @@ estimates, uncertainty, and supporting evidence.
 - The API is **not yet stable**. Anything may change without notice while the
   version is `0.x`.
 - **Implemented so far:** the claim document data model, the report data model,
-  three JSON Schemas, a deterministic rule engine with ten rules, and a
-  command-line interface.
-- **Not implemented:** the GitHub Action, and reading configuration from a file.
-- Not published to PyPI. Install from a source checkout (see below).
+  three JSON Schemas, a deterministic rule engine with ten rules, a
+  command-line interface, and a composite GitHub Action.
+- **Not implemented:** reading configuration from a file.
+- Not published to PyPI, and this repository has no public remote yet. The
+  GitHub Action is written and tested locally but **has never run on a
+  GitHub-hosted runner**.
 
 ## Quick start
 
@@ -171,6 +173,114 @@ single document from stdin and cannot be combined with file arguments.
 **If any input cannot be read, the whole run fails with code 2 and prints no
 report.** A partial report would look exactly like a complete one to whatever
 consumes it, and an unchecked file would quietly pass as checked.
+
+## GitHub Action
+
+**Status: implemented locally, not published.** The repository has no public
+remote, so there is nothing to reference with `uses:` yet, and the action has
+never executed on a GitHub-hosted runner. The examples below are the intended
+usage after publication.
+
+The action does no checking of its own. It sets up Python, installs this
+package from its own checkout, and runs `eo-claim-lint check --format github`.
+The annotations you see on a pull request are produced by the same code you get
+in a terminal.
+
+```mermaid
+graph LR
+  H["human"] --> T["terminal"] --> C["eo-claim-lint CLI"]
+  G["GitHub push / PR"] --> A["composite action"] --> C
+  C --> R["rule engine"] --> F["findings"]
+```
+
+### Minimal workflow
+
+```yaml
+name: Claim documents
+
+on: pull_request
+
+permissions:
+  contents: read # nothing else is needed
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: OWNER/eo-claim-lint@v0 # placeholder: not published yet
+        with:
+          files: claims/*.json
+```
+
+More examples — failing on warnings, disabling a rule, overriding a severity —
+are in [`examples/github-action.yml`](examples/github-action.yml).
+
+### Inputs
+
+| Input | Required | Default | Meaning | CLI mapping |
+|---|---|---|---|---|
+| `files` | Yes | — | Documents to check. One path or glob per line. | positional arguments |
+| `fail-on` | No | `error` | Lowest severity that fails the step. | `--fail-on` |
+| `enable` | No | empty | Run only these rules. One id per line. | `--enable` (repeated) |
+| `disable` | No | empty | Skip these rules. One id per line. | `--disable` (repeated) |
+| `severity` | No | empty | Overrides, one `RULE_ID=SEVERITY` per line. | `--severity` (repeated) |
+| `python-version` | No | `3.11` | Python used to run the linter. | `actions/setup-python` |
+| `working-directory` | No | `.` | Base for the file patterns. | wrapper |
+
+**Newlines are the only separator.** Splitting on spaces as well would make a
+path containing a space impossible to express, so `my claims/a.json` on its own
+line is one path, not two.
+
+### Outputs
+
+| Output | Meaning | Values |
+|---|---|---|
+| `exit-code` | The linter's own exit status. | `0` / `1` / `2` / `3` |
+| `outcome` | The same, named. | `passed` / `lint-failed` / `usage-error` / `internal-error` |
+
+There is deliberately no `valid` output. Producing one would mean running the
+linter a second time in JSON format, and a report that can disagree with the
+annotations beside it is worse than no report.
+
+### Permissions and secrets
+
+`contents: read`, and nothing else. Annotations travel as workflow commands
+printed to stdout, so no write permission is involved. **The action needs no
+secrets, no `GITHUB_TOKEN`, and no network access beyond `pip` and
+`setup-python`.** It never contacts a schema URL or an Earth observation
+service.
+
+### Exit behaviour
+
+The action passes the linter's exit code through unchanged, and never collapses
+one code into another. In particular `2` (your invocation was wrong) and `3`
+(our linter broke) stay distinguishable in `steps.<id>.outputs.exit-code`, even
+though GitHub reports all three non-zero codes as a failed step.
+
+### Annotation example
+
+```
+::error file=claims/bad.json,title=EOC301::$.evidence: This claim references no evidence. …
+```
+
+### Limitations
+
+- **`files` does not recurse.** The CLI has no recursive mode, and an action
+  that quietly checked more than the CLI would make the two disagree.
+- **A pattern matching nothing is an error**, not an empty pass. Reporting
+  success for a repository nobody looked at is the failure this tool exists to
+  prevent.
+- **Everything must stay inside the workspace.** `working-directory` and every
+  matched file are resolved and checked for containment, so `../..` and a
+  symlink leading out of the checkout are both refused. Symlinks *within* the
+  workspace are followed normally.
+- **No file size limit.** Documents are read whole. This matches the CLI; an
+  action-only cap would make the two disagree about the same file.
+- **Configuration files are not supported.** Rules are selected through the
+  `enable`, `disable`, and `severity` inputs.
+- **Never validated on a GitHub-hosted runner.** Everything above is verified
+  by local tests over the action metadata and the wrapper.
 
 ## Schema validation at runtime
 
@@ -565,7 +675,8 @@ In order:
 2. ~~**Models** — the result and issue types the rules produce.~~ Done.
 3. ~~**Rule engine** — the rules themselves, with stable rule IDs.~~ Done.
 4. ~~**CLI** — `check`, `rules`, `schema`, `init`, with documented exit codes.~~ Done.
-5. **GitHub Action** — a composite action that needs no secrets.
+5. ~~**GitHub Action** — a composite action that needs no secrets.~~ Done, but never
+   run on a GitHub-hosted runner.
 6. **Configuration files** — reading `RuleConfig` from TOML.
 
 ## Contributing

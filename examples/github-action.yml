@@ -1,0 +1,81 @@
+# Example workflows for the eo-claim-lint GitHub Action.
+#
+# The action is implemented but this repository has no public remote yet, so
+# `OWNER/eo-claim-lint@v0` below is a placeholder for a reference that does not
+# exist. These are the intended usages after publication, not working snippets.
+#
+# Copy one of these into .github/workflows/ in the repository whose claim
+# documents you want to check.
+
+# ---------------------------------------------------------------------------
+# Minimal: check every claim document on a pull request.
+# ---------------------------------------------------------------------------
+name: Claim documents
+
+on:
+  pull_request:
+
+permissions:
+  contents: read # the action needs nothing else
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: OWNER/eo-claim-lint@v0
+        with:
+          files: claims/*.json
+# ---------------------------------------------------------------------------
+# Stop on warnings as well as errors.
+# ---------------------------------------------------------------------------
+#
+#  jobs:
+#    lint:
+#      runs-on: ubuntu-latest
+#      steps:
+#        - uses: actions/checkout@v4
+#        - uses: OWNER/eo-claim-lint@v0
+#          with:
+#            files: claims/*.json
+#            fail-on: warning
+#
+# ---------------------------------------------------------------------------
+# Turn off a rule that does not suit the project.
+#
+# EOC202 compares units as plain strings, so a value recorded as "1" and
+# displayed as "index" is reported even though both are correct.
+# ---------------------------------------------------------------------------
+#
+#  jobs:
+#    lint:
+#      runs-on: ubuntu-latest
+#      steps:
+#        - uses: actions/checkout@v4
+#        - uses: OWNER/eo-claim-lint@v0
+#          with:
+#            files: claims/*.json
+#            disable: EOC202
+#
+# ---------------------------------------------------------------------------
+# Raise a rule's severity, and check several directories.
+#
+# One path or glob per line. Newlines are the only separator, so a path may
+# contain spaces.
+# ---------------------------------------------------------------------------
+#
+#  jobs:
+#    lint:
+#      runs-on: ubuntu-latest
+#      steps:
+#        - uses: actions/checkout@v4
+#        - uses: OWNER/eo-claim-lint@v0
+#          with:
+#            files: |
+#              claims/*.json
+#              archive/2026/*.json
+#            severity: |
+#              EOC101=error
+#              EOC401=info
+#            python-version: "3.12"
+#            working-directory: data

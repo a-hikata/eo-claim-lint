@@ -56,13 +56,27 @@ dev = [
     # jsonschema ships no py.typed marker, so its types come from a stub package
     # rather than from a blanket mypy exemption.
     "types-jsonschema>=4.23",
+    # Used only to validate action.yml and the workflows in tests. YAML has no
+    # standard-library parser, and hand-rolling one to check our own metadata
+    # would be less trustworthy than the reference implementation.
+    "PyYAML>=6.0",
+    "types-PyYAML>=6.0",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/eo_claim_lint"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/src", "/tests", "/README.md", "/LICENSE", "/CHANGELOG.md"]
+include = [
+    "/src",
+    "/tests",
+    "/action",
+    "/action.yml",
+    "/examples",
+    "/README.md",
+    "/LICENSE",
+    "/CHANGELOG.md",
+]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
@@ -78,14 +92,19 @@ show_missing = true
 
 [tool.ruff]
 line-length = 100
-src = ["src", "tests"]
+src = ["src", "tests", "action"]
 target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
+[tool.ruff.lint.isort]
+# `action` is repository infrastructure that lives outside src/, so isort has
+# to be told it is ours rather than a third-party package.
+known-first-party = ["eo_claim_lint", "action", "tests"]
+
 [tool.mypy]
 python_version = "3.11"
-files = ["src", "tests"]
+files = ["src", "tests", "action"]
 strict = true
 warn_unused_configs = true
