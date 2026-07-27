@@ -264,6 +264,128 @@ def test_readme_leads_with_the_action() -> None:
 
 
 # --------------------------------------------------------------------------
+# Published documentation must hold together
+#
+# These files are what a Marketplace visitor reads before they trust the
+# Action. A dead link or a contradiction between two of them is a defect in the
+# same sense a failing rule is.
+# --------------------------------------------------------------------------
+
+PUBLIC_DOCS: Final = (
+    "README.md",
+    "SUPPORT.md",
+    "PRIVACY.md",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md",
+    "CHANGELOG.md",
+)
+
+ISSUES_URL: Final = "https://github.com/a-hikata/eo-claim-lint/issues"
+ADVISORY_URL: Final = "https://github.com/a-hikata/eo-claim-lint/security/advisories/new"
+
+
+def _doc(name: str) -> str:
+    return (PROJECT_ROOT / name).read_text(encoding="utf-8")
+
+
+def _prose(name: str) -> str:
+    """Collapse the line wrapping, so a phrase can be matched as it reads."""
+    return " ".join(_doc(name).split())
+
+
+@pytest.mark.parametrize("name", PUBLIC_DOCS)
+def test_public_document_exists(name: str) -> None:
+    assert (PROJECT_ROOT / name).is_file()
+
+
+@pytest.mark.parametrize("target", ["SUPPORT.md", "SECURITY.md", "PRIVACY.md", "LICENSE"])
+def test_readme_reaches_the_governing_documents(target: str) -> None:
+    """A reader should never have to guess where support, security, or terms live."""
+    assert f"]({target})" in _doc("README.md"), target
+
+
+@pytest.mark.parametrize("target", ["SECURITY.md", "CONTRIBUTING.md"])
+def test_support_reaches_the_neighbouring_documents(target: str) -> None:
+    assert f"]({target})" in _doc("SUPPORT.md"), target
+
+
+def test_support_links_the_issue_tracker() -> None:
+    assert ISSUES_URL in _doc("SUPPORT.md")
+
+
+@pytest.mark.parametrize("name", ["SUPPORT.md", "SECURITY.md"])
+def test_vulnerability_channel_is_the_same_everywhere(name: str) -> None:
+    """Two documents naming two different reporting channels is worse than one."""
+    text = _doc(name)
+
+    assert ADVISORY_URL in text
+    assert "not" in text.lower() and "public issue" in text.lower()
+
+
+def test_privacy_states_that_no_personal_data_is_collected() -> None:
+    assert "does not collect, store, sell, transmit, or share personal data" in _prose("PRIVACY.md")
+
+
+def test_privacy_disclaims_control_over_github_retention() -> None:
+    """GitHub keeps the workflow logs. Implying otherwise would be a false promise."""
+    text = _prose("PRIVACY.md")
+
+    assert "does not control, administer, or have access to those records" in text
+    assert "GitHub Privacy Statement" in text
+    for overreach in (
+        "we retain",
+        "we store your",
+        "we delete",
+        "our workflow logs",
+        "contact us to delete",
+    ):
+        assert overreach not in text.lower(), overreach
+
+
+def test_privacy_does_not_claim_installation_is_network_isolated() -> None:
+    """`pip` and setup-python do reach the network; saying otherwise would be untrue."""
+    text = _prose("PRIVACY.md")
+
+    assert "not network-isolated during installation" in text
+    assert "PyPI" in text
+
+
+def test_readme_names_apache_2_0_as_the_governing_licence() -> None:
+    assert "governed by the Apache License 2.0" in _prose("README.md")
+
+
+@pytest.mark.parametrize("name", PUBLIC_DOCS)
+def test_no_additional_licence_terms_are_imposed(name: str) -> None:
+    """Apache-2.0 is the whole agreement. Nothing here may add a restriction."""
+    text = _prose(name).lower()
+
+    for imposed in (
+        "all rights reserved",
+        "you may not use",
+        "is prohibited",
+        "additional terms apply",
+        "subject to the following restrictions",
+        "by using this software you agree",
+    ):
+        assert imposed not in text, f"{name} appears to impose {imposed!r}"
+
+
+@pytest.mark.parametrize("name", PUBLIC_DOCS)
+def test_no_draft_markers_remain(name: str) -> None:
+    """Anything still marked provisional should not have been published."""
+    text = _prose(name)
+
+    for marker in ("TODO", "FIXME", "not established yet", "OWNER/", "<owner>", "YOUR_ORG"):
+        assert marker not in text, f"{name} still contains {marker!r}"
+
+    # The bare word "placeholder" is legitimate when describing synthetic data;
+    # these forms are the ones that mean "unfinished".
+    for marker in ("placeholder for a reference", "is a placeholder for", "pre-publication"):
+        assert marker not in text, f"{name} still contains {marker!r}"
+
+
+# --------------------------------------------------------------------------
 # Existing CI is untouched by this task
 # --------------------------------------------------------------------------
 

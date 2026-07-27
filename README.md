@@ -651,9 +651,21 @@ new rule needs an ID, a test, and documentation.
 Participation is covered by the [Code of Conduct](CODE_OF_CONDUCT.md), which
 also explains how to report a problem privately.
 
-Security reports: see [SECURITY.md](SECURITY.md). Please do not open a public
-issue for a vulnerability.
+## Support, security, and privacy
+
+| | Where |
+|---|---|
+| Questions, bugs, false positives and negatives, feature requests | [SUPPORT.md](SUPPORT.md) → [Issues](https://github.com/a-hikata/eo-claim-lint/issues) |
+| Security vulnerabilities — **never in a public issue** | [SECURITY.md](SECURITY.md) → [private reporting](https://github.com/a-hikata/eo-claim-lint/security/advisories/new) |
+| What this project does and does not process | [PRIVACY.md](PRIVACY.md) |
+
+Support is best-effort, with no guaranteed response time. Only the latest `0.x`
+release line is actively supported.
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE).
+**Use of `eo-claim-lint` is governed by the Apache License 2.0 included in this
+repository — see [LICENSE](LICENSE).** There are no additional terms: no
+separate end-user licence agreement, and no restriction beyond what Apache-2.0
+itself states. The software is provided without warranties or conditions of any
+kind, as section 7 of that licence sets out.
