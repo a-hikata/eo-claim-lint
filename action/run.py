@@ -121,7 +121,11 @@ def resolve_working_directory(value: str, workspace: Path) -> Path:
 
 
 def expand_files(patterns: Sequence[str], base: Path, workspace: Path) -> tuple[str, ...]:
-    """Expand each pattern against ``base``, in the order given.
+    """Expand each pattern against ``base``, returning workspace-relative paths.
+
+    Patterns are matched against ``base`` (the ``working-directory`` input) but
+    the paths that come back are relative to ``workspace``. When the two are the
+    same — the default — the result is identical either way.
 
     Globbing happens here rather than in the shell, so that a pattern is never
     re-evaluated as a command. Expansion is not recursive: the CLI has no
@@ -144,12 +148,21 @@ def expand_files(patterns: Sequence[str], base: Path, workspace: Path) -> tuple[
             resolved = (base / name).resolve()
             if not _is_inside(resolved, workspace):
                 raise ActionInputError(f"files: {name!r} resolves outside the workspace")
-            if name in seen:
+
+            # Paths are returned relative to the **workspace**, not to
+            # `working-directory`. GitHub resolves the `file=` property of an
+            # annotation against the workspace root, so a path relative to
+            # anywhere else silently attaches the annotation to nothing.
+            # Patterns are still matched against `working-directory` — that is
+            # what the input means — but what leaves this function is anchored
+            # where GitHub will read it.
+            relative = resolved.relative_to(workspace).as_posix()
+            if relative in seen:
                 continue
-            seen.add(name)
+            seen.add(relative)
             # A leading dash would be read as an option however the argument
             # list is built. `./` is the portable way to say "this is a path".
-            matched.append(f"./{name}" if name.startswith("-") else name)
+            matched.append(f"./{relative}" if relative.startswith("-") else relative)
 
     return tuple(matched)
 
@@ -281,9 +294,12 @@ def main(environ: Mapping[str, str] | None = None) -> int:
         write_summary(inputs, code, path=env.get("GITHUB_STEP_SUMMARY"), version=__version__)
         return code
 
+    # The linter runs from the workspace root, because `expand_files` hands it
+    # workspace-relative paths. `working-directory` decides which files are
+    # selected, not which directory the reported paths are anchored to.
     previous = os.getcwd()
     try:
-        os.chdir(base)
+        os.chdir(workspace)
         code = cli_main(argv)
     finally:
         os.chdir(previous)

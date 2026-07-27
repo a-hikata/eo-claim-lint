@@ -222,6 +222,48 @@ def test_self_test_checkout_is_pinned(self_test_text: str) -> None:
 
 
 # --------------------------------------------------------------------------
+# Documentation must be copy-pasteable
+# --------------------------------------------------------------------------
+
+REPOSITORY_SLUG: Final = "a-hikata/eo-claim-lint"
+
+DOCS_WITH_USAGE: Final = (
+    PROJECT_ROOT / "README.md",
+    PROJECT_ROOT / "examples" / "github-action.yml",
+)
+
+
+@pytest.mark.parametrize("path", DOCS_WITH_USAGE, ids=[p.name for p in DOCS_WITH_USAGE])
+def test_no_placeholder_owner_remains(path: Path) -> None:
+    """A `uses:` line a reader cannot copy is worse than no example at all."""
+    text = path.read_text(encoding="utf-8")
+
+    for placeholder in ("OWNER/", "<owner>", "YOUR_ORG", "example-org/"):
+        assert placeholder not in text, f"{path.name} still contains {placeholder!r}"
+
+
+@pytest.mark.parametrize("path", DOCS_WITH_USAGE, ids=[p.name for p in DOCS_WITH_USAGE])
+def test_usage_examples_name_this_repository(path: Path) -> None:
+    text = path.read_text(encoding="utf-8")
+
+    for reference in re.findall(r"uses: ([\w.\-]+/[\w.\-]+)@", text):
+        if reference.startswith("actions/"):
+            continue
+        assert reference == REPOSITORY_SLUG, reference
+
+
+def test_readme_leads_with_the_action() -> None:
+    """A Marketplace visitor should reach a working workflow without scrolling far."""
+    lines = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8").splitlines()
+
+    quick_start = next(i for i, line in enumerate(lines) if line.startswith("## Quick start"))
+    usage = next(i for i, line in enumerate(lines) if REPOSITORY_SLUG in line and "uses:" in line)
+
+    assert quick_start < 30, "Quick start should be near the top"
+    assert usage < 45, "a copy-pasteable workflow should appear in the first screenful"
+
+
+# --------------------------------------------------------------------------
 # Existing CI is untouched by this task
 # --------------------------------------------------------------------------
 

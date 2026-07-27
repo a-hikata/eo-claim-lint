@@ -1,11 +1,10 @@
 # Example workflows for the eo-claim-lint GitHub Action.
 #
-# The action is implemented but this repository has no public remote yet, so
-# `OWNER/eo-claim-lint@v0` below is a placeholder for a reference that does not
-# exist. These are the intended usages after publication, not working snippets.
-#
 # Copy one of these into .github/workflows/ in the repository whose claim
 # documents you want to check.
+#
+# `@v0` is a moving tag that always points at the newest v0.x.y. Pin to
+# `@v0.1.0` or to a commit SHA if you need a reproducible build.
 
 # ---------------------------------------------------------------------------
 # Minimal: check every claim document on a pull request.
@@ -23,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: OWNER/eo-claim-lint@v0
+      - uses: a-hikata/eo-claim-lint@v0
         with:
           files: claims/*.json
 # ---------------------------------------------------------------------------
@@ -35,7 +34,7 @@ jobs:
 #      runs-on: ubuntu-latest
 #      steps:
 #        - uses: actions/checkout@v4
-#        - uses: OWNER/eo-claim-lint@v0
+#        - uses: a-hikata/eo-claim-lint@v0
 #          with:
 #            files: claims/*.json
 #            fail-on: warning
@@ -52,7 +51,7 @@ jobs:
 #      runs-on: ubuntu-latest
 #      steps:
 #        - uses: actions/checkout@v4
-#        - uses: OWNER/eo-claim-lint@v0
+#        - uses: a-hikata/eo-claim-lint@v0
 #          with:
 #            files: claims/*.json
 #            disable: EOC202
@@ -69,7 +68,7 @@ jobs:
 #      runs-on: ubuntu-latest
 #      steps:
 #        - uses: actions/checkout@v4
-#        - uses: OWNER/eo-claim-lint@v0
+#        - uses: a-hikata/eo-claim-lint@v0
 #          with:
 #            files: |
 #              claims/*.json

@@ -212,6 +212,94 @@ def test_a_symlink_pointing_out_of_the_workspace_is_refused(
         expand_files(["leak.json"], workspace, workspace)
 
 
+# --------------------------------------------------------------------------
+# Path anchoring (regression: annotations were attached to the wrong file)
+# --------------------------------------------------------------------------
+
+
+def test_the_default_working_directory_is_unchanged(workspace: Path) -> None:
+    """With the default, workspace-relative and base-relative are the same string."""
+    assert expand_files(["claims/*.json"], workspace, workspace) == (
+        "claims/bad.json",
+        "claims/clean.json",
+    )
+
+
+def test_paths_are_anchored_to_the_workspace_not_the_working_directory(
+    workspace: Path,
+) -> None:
+    """GitHub resolves an annotation's `file=` against the workspace root."""
+    (workspace / "data").mkdir()
+    (workspace / "data" / "nested").mkdir()
+    (workspace / "data" / "nested" / "a.json").write_text(
+        CLEAN.read_text(encoding="utf-8"), encoding="utf-8"
+    )
+
+    matched = expand_files(["nested/a.json"], workspace / "data", workspace)
+
+    assert matched == ("data/nested/a.json",)
+
+
+def test_patterns_are_still_matched_against_the_working_directory(
+    workspace: Path,
+) -> None:
+    """The input still means "resolve my patterns here"; only the output moved."""
+    (workspace / "data").mkdir()
+    (workspace / "data" / "a.json").write_text(CLEAN.read_text(encoding="utf-8"), encoding="utf-8")
+
+    matched = expand_files(["a.json"], workspace / "data", workspace)
+
+    assert matched == ("data/a.json",)
+    with pytest.raises(ActionInputError, match="no file matched"):
+        expand_files(["a.json"], workspace, workspace)
+
+
+def test_a_leading_dash_is_neutralised_under_a_working_directory(
+    workspace: Path,
+) -> None:
+    """The `./` guard applies to the anchored path, not the pre-anchoring one."""
+    (workspace / "-data").mkdir()
+    (workspace / "-data" / "a.json").write_text(CLEAN.read_text(encoding="utf-8"), encoding="utf-8")
+
+    assert expand_files(["a.json"], workspace / "-data", workspace) == ("./-data/a.json",)
+
+
+def test_paths_use_forward_slashes(workspace: Path) -> None:
+    """Annotations are read by GitHub, which wants posix separators everywhere."""
+    (workspace / "data").mkdir()
+    (workspace / "data" / "a.json").write_text(CLEAN.read_text(encoding="utf-8"), encoding="utf-8")
+
+    for name in expand_files(["a.json"], workspace / "data", workspace):
+        assert "\\" not in name
+
+
+def test_duplicates_are_collapsed_after_anchoring(workspace: Path) -> None:
+    """Two patterns reaching the same file through different bases report once."""
+    (workspace / "data").mkdir()
+    (workspace / "data" / "a.json").write_text(CLEAN.read_text(encoding="utf-8"), encoding="utf-8")
+
+    matched = expand_files(["a.json", "a.json"], workspace / "data", workspace)
+
+    assert matched == ("data/a.json",)
+
+
+def test_annotation_names_the_path_from_the_repository_root(
+    workspace: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """End to end: the annotation must point at a path that exists from the root."""
+    (workspace / "data").mkdir()
+    (workspace / "data" / "bad.json").write_text(
+        ERROR_DOC.read_text(encoding="utf-8"), encoding="utf-8"
+    )
+
+    code = main(_environ(workspace, tmp_path, files="bad.json", working_directory="data"))
+    annotation = capsys.readouterr().out
+
+    assert code == 1
+    assert "file=data/bad.json," in annotation
+    assert (workspace / "data/bad.json").is_file()
+
+
 def test_glob_does_not_recurse(workspace: Path) -> None:
     """The CLI has no recursive mode; the action must not invent one."""
     (workspace / "claims" / "nested").mkdir()

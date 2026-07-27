@@ -38,11 +38,16 @@ While the version is `0.x`, the public API may change in any minor release.
 - Added Action metadata contract tests and wrapper unit tests.
 - Added least-privilege workflow examples.
 
+### Fixed
+
+- Action annotations now name paths relative to the workspace root rather than
+  to `working-directory`. GitHub resolves an annotation's `file=` against the
+  workspace, so a non-default `working-directory` previously attached findings
+  to a path that did not exist. Output with the default `working-directory` is
+  unchanged.
+
 ### Notes
 
-- The GitHub Action is implemented but **has never run on a GitHub-hosted
-  runner**: this repository has no public remote. Everything about it is
-  verified by local tests over the metadata and the wrapper.
 - The Action requires `contents: read` and no secrets.
 - The Action's file patterns are newline-separated and do not recurse, and
   every path is required to resolve inside the workspace.
