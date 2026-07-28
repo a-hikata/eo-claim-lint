@@ -31,7 +31,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # actions/checkout v7.0.1, pinned so that a moved tag cannot change it
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: a-hikata/eo-claim-lint@v0
         with:
           files: claims/*.json
@@ -42,6 +43,9 @@ A finding appears as an annotation on the offending file in the pull request:
 ```
 ::error file=claims/harvest-index.json,title=EOC301::$.evidence: This claim references no evidence. Add at least one reference so that a reader can trace where the value came from.
 ```
+
+An annotation names the file, not a line: the position inside the document is
+the JSON Pointer that opens the message (`$.evidence`).
 
 The step fails, so the check goes red and the pull request cannot be merged
 until it is fixed or the rule is deliberately switched off.
@@ -54,7 +58,7 @@ until it is fixed or the rule is deliberately switched off.
 ```bash
 python -m pip install "git+https://github.com/a-hikata/eo-claim-lint@v0"
 
-eo-claim-lint init                          # writes a working example
+eo-claim-lint init                          # writes a working example, in silence
 eo-claim-lint check claim-document.json     # passes
 eo-claim-lint rules                         # what gets checked
 ```
@@ -195,8 +199,12 @@ Two false-positive conditions are worth knowing before you start:
   symlink leading out of the checkout are both refused. Symlinks *within* the
   workspace are followed normally.
 - **No file size limit.** Documents are read whole.
+- **Findings name a file, not a line.** A JSON Pointer is never resolved to a
+  line number, so an annotation attaches to the file and the message carries the
+  position.
 - **No configuration file.** Rules are selected through the `enable`,
-  `disable`, and `severity` inputs.
+  `disable`, and `severity` inputs. No file — in the repository, in a parent
+  directory, or in your home directory — is read for settings.
 - **It never checks a number.** A value of `0.42` that should have been `4.2`
   passes every rule.
 - **It establishes nothing legally.** Passing this linter is not evidence of
@@ -249,6 +257,24 @@ The Action is a thin wrapper around this. Same rules, same findings.
 | `--severity RULE_ID=SEVERITY` | — | Report a rule at another severity. Repeatable. |
 | `--stdin-name NAME` | `<stdin>` | Label to report stdin under. |
 | `--no-color` | off | Accepted for compatibility; output is never coloured. |
+
+### Where the fail threshold comes from
+
+One place, in `0.1.x`: the `--fail-on` option, and the Action input of the same
+name that turns into it.
+
+| Situation | Threshold |
+|---|---|
+| `--fail-on` omitted | `error` |
+| Action `fail-on` omitted, or given as an empty string | `error` — the Action passes `--fail-on error` on your behalf |
+| Either given a value | that value |
+
+Nothing else participates. Since no configuration file is read (see
+[Limitations](#limitations)), a threshold cannot be set anywhere except at the
+point of invocation, and the two defaults cannot drift apart. Roadmap item 2
+adds a configuration file; the resolution order it will introduce — command
+line, then configuration file, then the built-in default — is not in effect in
+`0.1.x`, where the first and the last are the only two rungs that exist.
 
 ### Output examples
 
@@ -585,15 +611,26 @@ Concrete rule classes live in `eo_claim_lint.rules.*` and are reached through
 
 ## Purpose and non-goals
 
-`eo-claim-lint` checks three things about a published artifact:
+`eo-claim-lint` reads one claim document at a time and asks whether that
+document contradicts itself. Four concerns are covered, and every check behind
+them is one of the rules in [What gets checked](#what-gets-checked) — nothing is
+checked that is not in that table:
 
-- **Structural integrity of a claim document** — the declared layers exist, the
-  manifest and the items agree, nothing is declared that is not there.
-- **Measured observations are distinguishable from estimates** — an estimate
-  carries the method and confidence that make it recognisable as an estimate.
-- **Uncertainty and evidence are not missing** — an estimate that asserts a
-  class has to say where its thresholds came from. If the provenance of a
-  threshold cannot be disclosed, the class should not be asserted.
+- **An observation stays distinguishable from an estimate** — an estimate that
+  declares no uncertainty, an observation whose data is marked `modeled`, and an
+  interpretation with neither uncertainty nor a disclaimer (`EOC101`–`EOC103`).
+- **What is displayed agrees with what is recorded** — a label contradicting the
+  claim type, a displayed unit differing from the recorded one, and definitive
+  wording over an uncertainty recorded as `unknown` (`EOC201`–`EOC203`).
+- **Evidence and provenance are present** — a claim referencing no evidence at
+  all, and modeled data naming no software (`EOC301`, `EOC302`).
+- **The origin of the data is disclosed** — a synthetic or unestablished origin
+  the display does not mention (`EOC401`, `EOC402`).
+
+Everything is decided from the fields of the document in front of it. It reads
+no manifest, no layer inventory, and no file other than the ones named on the
+command line, and it does not ask a threshold or a classification to say where
+it came from.
 
 It does **not** do any of the following, and is not intended to grow into them:
 

@@ -5,6 +5,10 @@
 #
 # `@v0` is a moving tag that always points at the newest v0.x.y. Pin to
 # `@v0.1.0` or to a commit SHA if you need a reproducible build.
+#
+# `actions/checkout` is written as a commit SHA (v7.0.1) rather than as a tag,
+# for the same reason this action pins the one it uses internally: a tag can be
+# moved, and a moved tag changes what runs in your workflow.
 
 # ---------------------------------------------------------------------------
 # Minimal: check every claim document on a pull request.
@@ -21,7 +25,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: a-hikata/eo-claim-lint@v0
         with:
           files: claims/*.json
@@ -33,7 +37,7 @@ jobs:
 #    lint:
 #      runs-on: ubuntu-latest
 #      steps:
-#        - uses: actions/checkout@v4
+#        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 #        - uses: a-hikata/eo-claim-lint@v0
 #          with:
 #            files: claims/*.json
@@ -50,7 +54,7 @@ jobs:
 #    lint:
 #      runs-on: ubuntu-latest
 #      steps:
-#        - uses: actions/checkout@v4
+#        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 #        - uses: a-hikata/eo-claim-lint@v0
 #          with:
 #            files: claims/*.json
@@ -67,7 +71,7 @@ jobs:
 #    lint:
 #      runs-on: ubuntu-latest
 #      steps:
-#        - uses: actions/checkout@v4
+#        - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 #        - uses: a-hikata/eo-claim-lint@v0
 #          with:
 #            files: |

@@ -11,6 +11,55 @@ While the version is `0.x`, the public API may change in any minor release.
 
 Nothing yet.
 
+## [0.1.1] - 2026-07-28
+
+A documentation and maintenance patch. **Nothing a user can observe changes.**
+The rules, their default severities, the exit codes, the JSON output, and the
+Action's inputs and outputs are exactly what `0.1.0` published. A workflow
+pinned to `@v0` gets the same findings from the same documents.
+
+### Changed
+
+- Updated the pinned `actions/setup-python` inside the Action to v7.0.0, and
+  the pinned `actions/checkout` used by this repository's own workflows to
+  v7.0.1. Both target Node.js 24, which removes the Node.js 20 deprecation
+  warning that every run of the Action produced. Both are still pinned to a
+  commit, and the self-test on GitHub-hosted runners reports the same findings
+  as before with that warning gone.
+
+### Fixed
+
+- The README's "Purpose and non-goals" section credited the linter with three
+  checks it does not perform: that declared layers exist, that a manifest
+  agrees with its items, and that an asserted class discloses where its
+  thresholds came from. No rule has ever implemented any of them. The section
+  now describes the ten rules that do exist, and says what is not read.
+- The package docstring said the command-line interface and the GitHub Action
+  did not exist. Both shipped in `0.1.0`.
+
+### Documentation
+
+- Stated where the fail threshold comes from: the `--fail-on` option when it is
+  given, and `error` when it is not, on the command line and in the Action
+  alike. No file is consulted anywhere in `0.1.x`, and the "No configuration
+  file" limitation now says so explicitly.
+- Stated that a finding names a file rather than a line, and that the position
+  inside the document is the JSON Pointer that opens the message.
+- Pinned `actions/checkout` to a commit in the Quick start and in
+  `examples/github-action.yml`, so the examples follow the pinning this project
+  applies to itself.
+- Noted that `init` writes its example without printing anything.
+
+### Notes
+
+- Tests now hold the documentation to the rule registry: every rule named in a
+  document exists, every rule that exists appears in the README table with its
+  real default severity, and the withdrawn capabilities cannot return unnoticed.
+- The `0.1.x` threshold resolution — the option, then the built-in default,
+  with nothing in between — is fixed by test on both surfaces. Adding a
+  configuration file later has to change a test rather than change behaviour
+  quietly.
+
 ## [0.1.0] - 2026-07-27
 
 First release. Rule ids are stable from this release onward and are never

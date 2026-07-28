@@ -180,6 +180,22 @@ def build_argv(inputs: Inputs, *, base: Path, workspace: Path) -> list[str]:
     Everything the caller supplied ends up as a separate element of a list. No
     string is ever concatenated into a command, and ``--`` separates the options
     from the paths so that a file called ``-x`` cannot be read as a flag.
+
+    ``--fail-on`` is always present. The input defaults to ``error`` in
+    ``action.yml`` and :meth:`Inputs.from_environ` maps an empty value to
+    ``error`` as well, so "not specified" and "specified as error" are the same
+    thing by the time they arrive here, and the CLI's own default is never the
+    one that applies. That is correct while ``0.1.x`` has nowhere else to state
+    a threshold.
+
+    A configuration file (roadmap item 2) needs the opposite: the wrapper has to
+    be able to tell the two apart, or a threshold set in a file could never take
+    effect through the action, because this argument would always overrule it.
+    The change is behaviour-preserving in both directions — default the input to
+    ``""``, stop normalising it in ``from_environ``, and omit ``--fail-on`` here
+    when it is empty. Every existing workflow keeps the threshold it has now:
+    an empty value already means ``error`` today, and no configuration file
+    exists yet to supply anything else.
     """
     argv: list[str] = [
         "check",

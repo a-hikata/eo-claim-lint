@@ -6,9 +6,9 @@ and carries the evidence needed to trace where the numbers came from.
 
 It does not recompute or scientifically validate the numbers themselves.
 
-Status: early development. The data model, the JSON Schemas, and a first set of
-deterministic lint rules exist; the CLI and the GitHub Action do not. See
-README.md.
+Status: early development. The data model, the JSON Schemas, a deterministic
+rule engine with ten rules, a command-line interface, and a composite GitHub
+Action exist. Reading configuration from a file does not. See README.md.
 """
 
 from importlib.metadata import PackageNotFoundError, version
