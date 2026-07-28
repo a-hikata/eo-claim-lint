@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # actions/checkout v4
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - id: lint
         uses: ./
         with:
@@ -34,7 +34,7 @@ jobs:
     name: missing evidence fails
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       # The step is expected to fail. `continue-on-error` is used here to assert
       # that failure; a real workflow wants the failure to stop the run.
       - id: lint
@@ -53,7 +53,7 @@ jobs:
     name: fail-on warning turns a warning into a failure
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - id: default-threshold
         uses: ./
         with:
@@ -74,7 +74,7 @@ jobs:
     name: disable and severity change what is reported
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - id: disabled
         uses: ./
         with:
@@ -95,7 +95,7 @@ jobs:
     name: an unreadable input is a usage error
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - id: lint
         uses: ./
         continue-on-error: true
