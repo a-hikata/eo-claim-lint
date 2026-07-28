@@ -46,7 +46,7 @@ outputs:
 runs:
   using: composite
   steps:
-    # actions/setup-python v5, pinned to a commit so that a tag move cannot
+    # actions/setup-python v7, pinned to a commit so that a tag move cannot
     # change what runs in someone else's workflow.
     - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
       with:
