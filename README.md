@@ -13,6 +13,11 @@ instrument recorded or something a model concluded. Rendered the same way, a
 reader cannot tell which. Neither can a reviewer, six months later, reading the
 artifact instead of the code. This linter reads the artifact.
 
+![A pull request adds an Earth observation claim whose evidence list is empty; the eo-claim-lint check fails with EOC301, and passes once one evidence reference is added](https://raw.githubusercontent.com/a-hikata/eo-claim-lint/main/docs/assets/eo-claim-lint-demo.gif)
+
+An evidence-free claim fails the pull request check. Add the source, push again,
+and the check passes.
+
 ---
 
 ## Quick start
