@@ -1,0 +1,93 @@
+{
+  "scenes": [
+    {
+      "kind": "title",
+      "kicker": "eo-claim-lint  \u00b7  GitHub Action",
+      "line1": "Evidence missing from an EO claim",
+      "ms": 2800
+    },
+    {
+      "kind": "panel",
+      "caption": "A pull request adds a claim document",
+      "src": "pr-red-files.png",
+      "crop": [
+        0.0225,
+        0.1106,
+        0.7,
+        0.45
+      ],
+      "ms": 3000
+    },
+    {
+      "kind": "panel",
+      "caption": "\u2026with nothing behind it",
+      "sub": "evidence is an empty list",
+      "src": "pr-red-files.png",
+      "crop": [
+        0.0225,
+        0.731,
+        0.4,
+        0.897
+      ],
+      "ms": 3800
+    },
+    {
+      "kind": "panel",
+      "caption": "The pull request check fails",
+      "accent": "red",
+      "src": "pr-red-conversation.png",
+      "crop": [
+        0.065,
+        0.316,
+        0.695,
+        0.516
+      ],
+      "ms": 3800
+    },
+    {
+      "kind": "panel",
+      "caption": "EOC301 \u2014 the claim references no evidence",
+      "accent": "red",
+      "src": "job-red-log.png",
+      "crop": [
+        0.2775,
+        0.688,
+        0.97,
+        0.84
+      ],
+      "ms": 4600,
+      "sub": "GitHub Actions log"
+    },
+    {
+      "kind": "panel",
+      "caption": "Add the source",
+      "src": "pr-fix-diff.png",
+      "crop": [
+        0.2475,
+        0.3497,
+        0.785,
+        0.7115
+      ],
+      "ms": 3800
+    },
+    {
+      "kind": "panel",
+      "caption": "The check passes",
+      "accent": "green",
+      "src": "pr-green-conversation.png",
+      "crop": [
+        0.065,
+        0.3454,
+        0.695,
+        0.663
+      ],
+      "ms": 3800
+    },
+    {
+      "kind": "title",
+      "line1": "Catch it before merge.",
+      "line2": "uses: a-hikata/eo-claim-lint@v0",
+      "ms": 3400
+    }
+  ]
+}
