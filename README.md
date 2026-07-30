@@ -1,22 +1,21 @@
 # eo-claim-lint
 
+**A GitHub Action and command line linter for Earth observation claim documents:
+it reports a satellite-derived number published without its uncertainty, evidence,
+or disclosed provenance, and fails the pull request when a claim cites none at all.**
+
+[![Get it on GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-eo--claim--lint-2088FF?logo=githubactions&logoColor=white)](https://github.com/marketplace/actions/eo-claim-lint)
 [![CI](https://github.com/a-hikata/eo-claim-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/a-hikata/eo-claim-lint/actions/workflows/ci.yml)
 [![Action self-test](https://github.com/a-hikata/eo-claim-lint/actions/workflows/action-test.yml/badge.svg)](https://github.com/a-hikata/eo-claim-lint/actions/workflows/action-test.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](pyproject.toml)
 
-**Check that a published Earth observation claim keeps measurements, estimates,
-uncertainty, and evidence distinguishable — before anyone reads it.**
-
-A number derived from satellite data reaches a page as either something an
-instrument recorded or something a model concluded. Rendered the same way, a
-reader cannot tell which. Neither can a reviewer, six months later, reading the
-artifact instead of the code. This linter reads the artifact.
-
 ![A pull request adds an Earth observation claim whose evidence list is empty; the eo-claim-lint check fails with EOC301, and passes once one evidence reference is added](https://raw.githubusercontent.com/a-hikata/eo-claim-lint/main/docs/assets/eo-claim-lint-demo.gif)
 
 An evidence-free claim fails the pull request check. Add the source, push again,
 and the check passes.
+
+[**Add it to a workflow**](#quick-start) · [**GitHub Marketplace**](https://github.com/marketplace/actions/eo-claim-lint) · [**The ten rules**](#what-gets-checked) · [**Limitations**](#limitations)
 
 ---
 
@@ -70,6 +69,45 @@ eo-claim-lint rules                         # what gets checked
 
 Then delete the `evidence` array from the example and run `check` again to see
 what a finding looks like. The Action runs exactly this code.
+
+---
+
+## Why it exists
+
+A number derived from satellite data reaches a page as either something an
+instrument recorded or something a model concluded. Rendered the same way, a
+reader cannot tell which. Neither can a reviewer, six months later, reading the
+artifact instead of the code. This linter reads the artifact.
+
+---
+
+## Contents
+
+**Using the Action** —
+[Quick start](#quick-start) ·
+[Inputs](#inputs) ·
+[Outputs](#outputs) ·
+[Exit codes](#exit-codes) ·
+[Permissions and secrets](#permissions-and-secrets) ·
+[Versioning](#versioning) ·
+[What gets checked](#what-gets-checked) ·
+[Limitations](#limitations)
+
+**Beyond the Action** —
+[Project status](#project-status) ·
+[Command line](#command-line) ·
+[The claim document](#the-claim-document) ·
+[Schemas](#schemas) ·
+[Report format](#report-format) ·
+[Python API](#python-api) ·
+[Purpose and non-goals](#purpose-and-non-goals)
+
+**Project** —
+[Development](#development) ·
+[Roadmap](#roadmap) ·
+[Contributing](#contributing) ·
+[Support, security, and privacy](#support-security-and-privacy) ·
+[License](#license)
 
 ---
 
@@ -217,10 +255,12 @@ Two false-positive conditions are worth knowing before you start:
 
 ---
 
-# Beyond the Action
+## Beyond the Action
 
 Everything below documents the command line, the Python API, and the document
 format. **If you only want the pull-request check, you are already done.**
+
+[Back to contents](#contents)
 
 ## Project status
 

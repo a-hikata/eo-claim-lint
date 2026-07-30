@@ -1,7 +1,18 @@
 # Regenerating the README demo
 
 These scripts rebuild `docs/assets/eo-claim-lint-demo.gif` (and the `.mp4` and
-poster beside it).
+poster beside it), plus the repository social preview card.
+
+## Social preview
+
+```sh
+python3 social_preview.py ../../docs/assets/social-preview.png
+```
+
+GitHub has no REST API for the social preview, so the file has to be uploaded by
+hand once: **Settings → General → Social preview → Edit → Upload an image**.
+Re-running the script updates the committed PNG but does not update GitHub; the
+upload has to be repeated when the card changes.
 
 The demo is assembled from **screenshots of a real pull request** that ran the
 published action at `a-hikata/eo-claim-lint@v0`. The captions and the two title
